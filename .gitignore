@@ -1,0 +1,10 @@
+# Conductor Files
+conductor/
+*.md
+!README.md
+
+# Go Files
+bin/
+pkg/
+dist/
+.env
