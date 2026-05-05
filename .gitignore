@@ -1,10 +1,9 @@
-# Conductor Files
-conductor/
-*.md
-!README.md
-
-# Go Files
+# Binaries
 bin/
-pkg/
 dist/
+
+# Env
 .env
+
+# Vendor
+vendor/
