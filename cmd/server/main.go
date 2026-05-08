@@ -2,10 +2,13 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/greg5320/AutoNews/internal/db"
+	"github.com/greg5320/AutoNews/internal/llm"
 	"github.com/greg5320/AutoNews/internal/logger"
 	"github.com/greg5320/AutoNews/internal/repository"
+	"github.com/greg5320/AutoNews/internal/service"
 )
 
 func main() {
@@ -21,9 +24,13 @@ func main() {
 	}
 	defer database.Close()
 
-	// Инициализируем репозиторий
+	// Инициализируем зависимости
 	repo := repository.NewArticleRepository(database)
-	_ = repo // TODO: использовать repo в бизнес-логике
+	
+	// TODO: доставать ключ из .env, пока так
+	apiKey := os.Getenv("GEMINI_API_KEY")
+	geminiClient := llm.NewGeminiClient(apiKey)
 
-	// TODO: Добавить чтение конфига из env или yaml
+	articleService := service.NewArticleService(repo, geminiClient)
+	_ = articleService // TODO: вызывать в воркерах или роутах
 }
