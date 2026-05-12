@@ -1,7 +1,10 @@
 package service
 
 import (
+	"context"
 	"log"
+	"sync"
+	"time"
 
 	"github.com/greg5320/AutoNews/internal/llm"
 	"github.com/greg5320/AutoNews/internal/models"
@@ -20,30 +23,57 @@ func NewArticleService(repo *repository.ArticleRepository, gemini *llm.GeminiCli
 	}
 }
 
-// ProcessArticles обрабатывает список новых статей.
-// Берем текст, отправляем в LLM, ждем ответа, сохраняем в БД.
-func (s *ArticleService) ProcessArticles(articles []models.Article) {
-	log.Printf("Начинаем обработку %d статей...\n", len(articles))
+// worker читает из канала и обрабатывает статьи параллельно.
+// Добавил context.WithTimeout, чтобы горутина не зависала, если API тупит.
+func (s *ArticleService) worker(id int, jobs <-chan models.Article, wg *sync.WaitGroup) {
+	defer wg.Done()
 
-	// TODO: работает очень медленно, надо бы распараллелить
-	// Сейчас мы ждем ответа от API по каждой статье последовательно.
-	for _, article := range articles {
-		log.Printf("Обрабатываем статью ID=%d: %s\n", article.ID, article.Title)
+	for article := range jobs {
+		log.Printf("Воркер %d взял в работу статью ID=%d\n", id, article.ID)
 
-		summary, err := s.llm.SummarizeText(article.Content)
+		// Ставим жесткий таймаут в 10 секунд на один запрос к LLM
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+		summary, err := s.llm.SummarizeText(ctx, article.Content)
+		cancel() // освобождаем ресурсы контекста
+
 		if err != nil {
-			log.Printf("Ошибка получения summary для статьи %d: %v\n", article.ID, err)
+			log.Printf("Воркер %d: Ошибка получения summary (статья %d): %v\n", id, article.ID, err)
 			continue
 		}
 
 		err = s.repo.UpdateSummary(article.ID, summary)
 		if err != nil {
-			log.Printf("Ошибка сохранения summary в БД (статья %d): %v\n", article.ID, err)
+			log.Printf("Воркер %d: Ошибка сохранения summary (статья %d): %v\n", id, article.ID, err)
 			continue
 		}
 
-		log.Printf("Статья %d успешно обработана!\n", article.ID)
+		log.Printf("Воркер %d: Статья %d успешно обработана!\n", id, article.ID)
+	}
+}
+
+// ProcessArticles теперь использует Worker Pool, ура!
+func (s *ArticleService) ProcessArticles(articles []models.Article) {
+	numWorkers := 3 // TODO: вынести в конфиг
+	log.Printf("Начинаем обработку %d статей (воркеров: %d)...\n", len(articles), numWorkers)
+
+	jobs := make(chan models.Article, len(articles))
+	var wg sync.WaitGroup
+
+	// Запускаем пул воркеров
+	for w := 1; w <= numWorkers; w++ {
+		wg.Add(1)
+		go s.worker(w, jobs, &wg)
 	}
 
-	log.Println("Обработка завершена.")
+	// Раскидываем задачи в канал
+	for _, article := range articles {
+		jobs <- article
+	}
+	close(jobs) // закрываем канал, чтобы воркеры вышли из цикла, когда доделают работу
+
+	// Ждем, пока все воркеры не отчитаются
+	wg.Wait()
+
+	log.Println("Все воркеры закончили работу. Обработка завершена.")
 }

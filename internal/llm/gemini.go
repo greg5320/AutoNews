@@ -2,6 +2,7 @@ package llm
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -21,8 +22,8 @@ func NewGeminiClient(apiKey string) *GeminiClient {
 	}
 }
 
-// SummarizeText отправляет текст в LLM и возвращает выжимку
-func (g *GeminiClient) SummarizeText(text string) (string, error) {
+// SummarizeText отправляет текст в LLM и возвращает выжимку (с поддержкой контекста для таймаутов)
+func (g *GeminiClient) SummarizeText(ctx context.Context, text string) (string, error) {
 	// TODO: возможно, стоит перенести URL в конфигурацию
 	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=%s", g.apiKey)
 
@@ -42,7 +43,7 @@ func (g *GeminiClient) SummarizeText(text string) (string, error) {
 		return "", fmt.Errorf("ошибка сборки JSON: %w", err)
 	}
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(body))
 	if err != nil {
 		return "", fmt.Errorf("ошибка создания запроса: %w", err)
 	}
