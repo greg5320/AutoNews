@@ -10,8 +10,9 @@ import (
 
 // NewPostgresDB подключается к постгресу.
 func NewPostgresDB() (*sqlx.DB, error) {
-	// TODO: пока хардкод, потом надо вынести в .env конфигурацию
-	dsn := "host=localhost port=5432 user=postgres password=postgres dbname=autonews sslmode=disable"
+	// Внутри Docker мы подключаемся по имени сервиса 'postgres'
+	// TODO: обязательно вынести это в .env, сейчас для теста поменял localhost на postgres
+	dsn := "host=postgres port=5432 user=postgres password=postgres dbname=autonews sslmode=disable"
 	db, err := sqlx.Connect("postgres", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("ошибка подключения к бд: %w", err)
