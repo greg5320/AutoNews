@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { Filters } from "@/components/Filters";
 import { DeleteAllButton, DeleteArticleButton } from "@/components/DeleteButtons";
+import { RefreshButton } from "@/components/RefreshButton";
 import { ArticleList, ArticleCard, articleListVariants, articleCardVariants } from "@/components/ui/motion";
 
 export const dynamic = 'force-dynamic';
@@ -33,9 +34,10 @@ export default async function Home({ searchParams }: { searchParams: { tag?: str
           </p>
         </div>
         <div className="flex gap-4">
+          <RefreshButton />
           <DeleteAllButton />
           <Link href="/settings">
-            <Button variant="outline" className="shadow-sm hover:shadow transition-shadow">
+            <Button variant="outline" className="shadow-sm hover:shadow transition-shadow bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800">
               Настройки RSS
             </Button>
           </Link>

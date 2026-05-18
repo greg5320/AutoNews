@@ -52,8 +52,8 @@ export function Filters({ feeds }: FiltersProps) {
             className={cn(
               "inline-flex items-center justify-start whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 h-9 px-4 py-2 w-full sm:w-[250px] shadow-sm transition-all duration-200", 
               isActive 
-                ? "border border-blue-500/50 bg-blue-50/50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 ring-1 ring-blue-500/50" 
-                : "border border-input bg-transparent hover:bg-accent hover:text-accent-foreground"
+                ? "border border-blue-500 bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 ring-1 ring-blue-500 shadow-blue-500/10" 
+                : "border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-900 dark:text-slate-100"
             )}
           >
             <Filter className={cn("mr-2 h-4 w-4 transition-transform duration-300", isActive && "rotate-180")} />
