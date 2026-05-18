@@ -14,34 +14,28 @@ import (
 )
 
 func main() {
-	// Инициализируем логгер
 	logger.Init()
-
 	log.Println("Запуск AutoNews...")
 
-	// Подключаемся к БД
 	database, err := db.NewPostgresDB()
 	if err != nil {
 		log.Fatalf("Не удалось подключиться к БД: %v", err)
 	}
 	defer database.Close()
 
-	// Инициализируем зависимости
 	repo := repository.NewArticleRepository(database)
+	feedRepo := repository.NewFeedRepository(database)
 	
-	// TODO: доставать ключ из .env, пока так
 	apiKey := os.Getenv("GEMINI_API_KEY")
 	geminiClient := llm.NewGeminiClient(apiKey)
 
 	articleService := service.NewArticleService(repo, geminiClient)
 
-	// Инициализируем и запускаем шедулер для парсинга RSS
-	scheduler := cron.NewScheduler(repo, articleService)
+	scheduler := cron.NewScheduler(repo, feedRepo, articleService)
 	scheduler.Start()
 	defer scheduler.Stop()
 
-	// Поднимаем REST API
-	router := api.NewRouter(repo, articleService)
+	router := api.NewRouter(repo, feedRepo, articleService)
 	log.Println("Слушаем порт :8002...")
 	if err := router.Run(":8002"); err != nil {
 		log.Fatalf("Ошибка запуска сервера: %v", err)

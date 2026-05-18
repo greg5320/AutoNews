@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS rss_feeds (
+    id SERIAL PRIMARY KEY,
+    url TEXT UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO rss_feeds (url) VALUES ('https://hnrss.org/frontpage') ON CONFLICT DO NOTHING;

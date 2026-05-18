@@ -13,50 +13,49 @@ import (
 )
 
 type Scheduler struct {
-	c       *cronlib.Cron
-	parser  *rss.Parser
-	repo    *repository.ArticleRepository
-	service *service.ArticleService
+	c        *cronlib.Cron
+	parser   *rss.Parser
+	repo     *repository.ArticleRepository
+	feedRepo *repository.FeedRepository
+	service  *service.ArticleService
 }
 
-func NewScheduler(repo *repository.ArticleRepository, svc *service.ArticleService) *Scheduler {
+func NewScheduler(repo *repository.ArticleRepository, feedRepo *repository.FeedRepository, svc *service.ArticleService) *Scheduler {
 	return &Scheduler{
-		c:       cronlib.New(),
-		parser:  rss.NewParser(),
-		repo:    repo,
-		service: svc,
+		c:        cronlib.New(),
+		parser:   rss.NewParser(),
+		repo:     repo,
+		feedRepo: feedRepo,
+		service:  svc,
 	}
 }
 
-// Start запускает шедулер
 func (s *Scheduler) Start() {
-	// Добавляем джобу: раз в 30 минут (для дебага можно поставить "@every 1m")
-	// TODO: вынести список фидов в конфиг
-	feeds := []string{
-		"https://hnrss.org/frontpage",
-		// "https://habr.com/ru/rss/all/all/", // Если нужен хабр
-	}
-
 	s.c.AddFunc("@every 10m", func() {
-		log.Println("[CRON] Запускаем парсинг RSS...")
-		for _, url := range feeds {
-			s.fetchAndProcess(url)
-		}
+		s.runParsing()
 	})
 
 	s.c.Start()
-	log.Println("Шедулер успешно запущен (период: каждые 10 мин)")
+	log.Println("Scheduler started (@every 10m)")
 	
-	// Можно сразу пнуть один раз при старте
-	go func() {
-		for _, url := range feeds {
-			s.fetchAndProcess(url)
-		}
-	}()
+	go s.runParsing()
 }
 
 func (s *Scheduler) Stop() {
 	s.c.Stop()
+}
+
+func (s *Scheduler) runParsing() {
+	log.Println("[CRON] Starting RSS parsing...")
+	feeds, err := s.feedRepo.GetAll()
+	if err != nil {
+		log.Printf("[CRON] Error loading feeds: %v\n", err)
+		return
+	}
+
+	for _, feed := range feeds {
+		s.fetchAndProcess(feed.URL)
+	}
 }
 
 func (s *Scheduler) fetchAndProcess(url string) {
@@ -65,29 +64,25 @@ func (s *Scheduler) fetchAndProcess(url string) {
 
 	articles, err := s.parser.FetchArticles(ctx, url)
 	if err != nil {
-		log.Printf("[CRON] Ошибка парсинга %s: %v\n", url, err)
+		log.Printf("[CRON] Parse error %s: %v\n", url, err)
 		return
 	}
 
 	var newArticles []models.Article
 
 	for _, article := range articles {
-		// Проверяем, есть ли уже такая статья по урлу
 		existing, err := s.repo.GetByOriginalURL(*article.OriginalURL)
 		if err != nil {
-			log.Printf("[CRON] Ошибка при поиске дубликата: %v\n", err)
+			log.Printf("[CRON] Duplicate check error: %v\n", err)
 			continue
 		}
-
 		if existing != nil {
-			// Уже парсили, пропускаем
 			continue
 		}
 
-		// Сохраняем в базу как new
 		id, err := s.repo.Create(&article)
 		if err != nil {
-			log.Printf("[CRON] Ошибка сохранения новой статьи: %v\n", err)
+			log.Printf("[CRON] DB insert error: %v\n", err)
 			continue
 		}
 		
@@ -96,10 +91,7 @@ func (s *Scheduler) fetchAndProcess(url string) {
 	}
 
 	if len(newArticles) > 0 {
-		log.Printf("[CRON] Отправляем %d новых статей в Worker Pool\n", len(newArticles))
-		// Отдаем в пул асинхронно
+		log.Printf("[CRON] Sending %d articles to Worker Pool\n", len(newArticles))
 		go s.service.ProcessArticles(newArticles)
-	} else {
-		log.Printf("[CRON] Нет новых статей с %s\n", url)
 	}
 }

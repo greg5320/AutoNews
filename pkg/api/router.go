@@ -12,21 +12,21 @@ import (
 )
 
 type Router struct {
-	engine  *gin.Engine
-	repo    *repository.ArticleRepository
-	service *service.ArticleService
+	engine   *gin.Engine
+	repo     *repository.ArticleRepository
+	feedRepo *repository.FeedRepository
+	service  *service.ArticleService
 }
 
-func NewRouter(repo *repository.ArticleRepository, svc *service.ArticleService) *Router {
+func NewRouter(repo *repository.ArticleRepository, feedRepo *repository.FeedRepository, svc *service.ArticleService) *Router {
 	r := &Router{
-		engine:  gin.Default(),
-		repo:    repo,
-		service: svc,
+		engine:   gin.Default(),
+		repo:     repo,
+		feedRepo: feedRepo,
+		service:  svc,
 	}
 
-	// Настраиваем CORS, чтобы фронтенд на NextJS мог спокойно дергать API
 	r.engine.Use(cors.Default())
-
 	r.setupRoutes()
 	return r
 }
@@ -35,6 +35,10 @@ func (r *Router) setupRoutes() {
 	r.engine.POST("/articles", r.createArticle)
 	r.engine.GET("/articles", r.getArticles)
 	r.engine.GET("/articles/:id", r.getArticle)
+
+	r.engine.GET("/feeds", r.getFeeds)
+	r.engine.POST("/feeds", r.createFeed)
+	r.engine.DELETE("/feeds/:id", r.deleteFeed)
 }
 
 func (r *Router) Run(addr string) error {
@@ -44,15 +48,12 @@ func (r *Router) Run(addr string) error {
 func (r *Router) getArticles(c *gin.Context) {
 	articles, err := r.repo.GetAll()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось загрузить список статей"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load articles"})
 		return
 	}
-
-	// Если пусто, вернем пустой массив вместо null
 	if articles == nil {
 		articles = []models.Article{}
 	}
-
 	c.JSON(http.StatusOK, articles)
 }
 
@@ -75,33 +76,71 @@ func (r *Router) createArticle(c *gin.Context) {
 
 	id, err := r.repo.Create(&article)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось сохранить статью"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save article"})
 		return
 	}
 	article.ID = id
 
-	// Отдаем статью в воркер-пул для фоновой генерации саммари
-	// Для этого вызываем ProcessArticles асинхронно или через отдельный канал
-	// В нашем случае ProcessArticles блокирующий, поэтому мы завернем его в горутину 
-	// (в реальном проекте лучше отдавать напрямую в канал воркеров)
 	go r.service.ProcessArticles([]models.Article{article})
 
-	c.JSON(http.StatusCreated, gin.H{"message": "Статья принята в обработку", "id": id})
+	c.JSON(http.StatusCreated, gin.H{"message": "Article accepted", "id": id})
 }
 
 func (r *Router) getArticle(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Неверный формат ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return
 	}
 
 	article, err := r.repo.GetByID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Статья не найдена"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Article not found"})
+		return
+	}
+	c.JSON(http.StatusOK, article)
+}
+
+func (r *Router) getFeeds(c *gin.Context) {
+	feeds, err := r.feedRepo.GetAll()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load feeds"})
+		return
+	}
+	if feeds == nil {
+		feeds = []models.Feed{}
+	}
+	c.JSON(http.StatusOK, feeds)
+}
+
+func (r *Router) createFeed(c *gin.Context) {
+	var input struct {
+		URL string `json:"url" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, article)
+	id, err := r.feedRepo.Create(input.URL)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add feed"})
+		return
+	}
+	c.JSON(http.StatusCreated, gin.H{"id": id, "url": input.URL})
+}
+
+func (r *Router) deleteFeed(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+	if err := r.feedRepo.Delete(id); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete feed"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Deleted"})
 }

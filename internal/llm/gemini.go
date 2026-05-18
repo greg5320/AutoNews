@@ -10,13 +10,11 @@ import (
 	"strings"
 )
 
-// AIAnalysisResult содержит результаты анализа статьи нейросетью.
 type AIAnalysisResult struct {
 	Summary string   `json:"summary"`
 	Tags    []string `json:"tags"`
 }
 
-// GeminiClient — простой клиент для работы с Gemini API
 type GeminiClient struct {
 	apiKey string
 	client *http.Client
@@ -29,16 +27,14 @@ func NewGeminiClient(apiKey string) *GeminiClient {
 	}
 }
 
-// AnalyzeText отправляет текст в LLM и возвращает выжимку + теги в структурированном виде
 func (g *GeminiClient) AnalyzeText(ctx context.Context, text string) (*AIAnalysisResult, error) {
-	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=%s", g.apiKey)
+	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash:generateContent?key=%s", g.apiKey)
 
 	prompt := `Проанализируй новость. Сделай краткую выжимку (summary) и придумай от 3 до 5 релевантных тегов (tags).
 Верни ответ СТРОГО в формате JSON, без маркдауна и лишних символов:
 {"summary": "текст", "tags": ["тег1", "тег2"]}
 Текст: ` + text
 
-	// Формируем payload по спеке гугла
 	payload := map[string]interface{}{
 		"contents": []map[string]interface{}{
 			{
@@ -48,7 +44,7 @@ func (g *GeminiClient) AnalyzeText(ctx context.Context, text string) (*AIAnalysi
 			},
 		},
 		"generationConfig": map[string]interface{}{
-			"responseMimeType": "application/json", // Заставляем модель вернуть валидный JSON
+			"responseMimeType": "application/json",
 		},
 	}
 
@@ -74,7 +70,6 @@ func (g *GeminiClient) AnalyzeText(ctx context.Context, text string) (*AIAnalysi
 		return nil, fmt.Errorf("bad status %d: %s", resp.StatusCode, string(respBody))
 	}
 
-	// Парсим ответ гугла
 	var geminiResp struct {
 		Candidates []struct {
 			Content struct {
@@ -94,8 +89,6 @@ func (g *GeminiClient) AnalyzeText(ctx context.Context, text string) (*AIAnalysi
 	}
 
 	rawText := geminiResp.Candidates[0].Content.Parts[0].Text
-	
-	// Иногда модель все равно оборачивает JSON в markdown-блоки ```json ... ```
 	rawText = strings.TrimPrefix(rawText, "```json")
 	rawText = strings.TrimSuffix(rawText, "```")
 	rawText = strings.TrimSpace(rawText)
