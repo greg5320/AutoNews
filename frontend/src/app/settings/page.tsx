@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { fetchFeeds, createFeed, deleteFeed, Feed } from "@/lib/api";
+import { fetchFeeds, createFeed, deleteFeed, Feed, getSettings, updateSettings } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Trash2, Plus } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, Trash2, Plus, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
@@ -15,17 +16,22 @@ export default function SettingsPage() {
   const [feeds, setFeeds] = useState<Feed[]>([]);
   const [newUrl, setNewUrl] = useState("");
   const [loading, setLoading] = useState(true);
+  const [interval, setIntervalVal] = useState("10");
 
   useEffect(() => {
-    loadFeeds();
+    loadData();
   }, []);
 
-  const loadFeeds = async () => {
+  const loadData = async () => {
     try {
-      const data = await fetchFeeds();
-      setFeeds(data);
+      const [feedsData, settingsData] = await Promise.all([
+        fetchFeeds(),
+        getSettings(),
+      ]);
+      setFeeds(feedsData);
+      setIntervalVal(settingsData.cron_interval);
     } catch (e) {
-      toast.error("Ошибка загрузки фидов");
+      toast.error("Ошибка загрузки данных");
     } finally {
       setLoading(false);
     }
@@ -38,7 +44,7 @@ export default function SettingsPage() {
       await createFeed(newUrl);
       toast.success("Фид добавлен");
       setNewUrl("");
-      loadFeeds();
+      loadData();
     } catch (e) {
       toast.error("Ошибка добавления фида");
     }
@@ -48,9 +54,20 @@ export default function SettingsPage() {
     try {
       await deleteFeed(id);
       toast.success("Фид удален");
-      loadFeeds();
+      loadData();
     } catch (e) {
       toast.error("Ошибка удаления");
+    }
+  };
+
+  const handleIntervalChange = async (newInterval: string | null) => {
+    if (!newInterval) return;
+    try {
+      await updateSettings(newInterval);
+      setIntervalVal(newInterval);
+      toast.success("Интервал обновления сохранен");
+    } catch (e) {
+      toast.error("Ошибка сохранения интервала");
     }
   };
 
@@ -67,14 +84,42 @@ export default function SettingsPage() {
 
       <h1 className="text-3xl font-bold tracking-tight mb-8">Настройки RSS</h1>
 
-      <form onSubmit={handleAdd} className="flex gap-4 mb-8">
+      {/* Блок настройки расписания */}
+      <div className="mb-10 bg-muted/30 p-6 rounded-lg border">
+        <div className="flex items-center gap-4">
+          <div className="bg-primary/10 p-3 rounded-full">
+            <Clock className="w-6 h-6 text-primary" />
+          </div>
+          <div className="flex-1">
+            <h2 className="text-lg font-semibold">Частота обновления</h2>
+            <p className="text-sm text-muted-foreground">Как часто робот должен проверять ленты на наличие новых статей.</p>
+          </div>
+          <div className="w-[180px]">
+            <Select value={interval} onValueChange={handleIntervalChange} disabled={loading}>
+              <SelectTrigger>
+                <SelectValue placeholder="Выберите интервал" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">Каждую 1 минуту</SelectItem>
+                <SelectItem value="5">Каждые 5 минут</SelectItem>
+                <SelectItem value="10">Каждые 10 минут</SelectItem>
+                <SelectItem value="30">Каждые 30 минут</SelectItem>
+                <SelectItem value="60">Каждый 1 час</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+
+      <h2 className="text-2xl font-semibold mb-4">Источники (Feeds)</h2>
+      <form onSubmit={handleAdd} className="flex gap-4 mb-6">
         <Input 
           placeholder="https://hnrss.org/frontpage" 
           value={newUrl}
           onChange={(e) => setNewUrl(e.target.value)}
           className="flex-1"
         />
-        <Button type="submit">
+        <Button type="submit" disabled={loading}>
           <Plus className="w-4 h-4 mr-2" /> Добавить
         </Button>
       </form>

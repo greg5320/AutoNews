@@ -69,3 +69,18 @@ export async function deleteFeed(id: number): Promise<void> {
   const res = await fetch(`${API_BASE}/feeds/${id}`, { method: "DELETE" });
   if (!res.ok) throw new Error("Failed to delete feed");
 }
+
+export async function getSettings(): Promise<{ cron_interval: string }> {
+  const res = await fetch(`${API_BASE}/settings`, { cache: "no-store" });
+  if (!res.ok) throw new Error("Failed to load settings");
+  return res.json();
+}
+
+export async function updateSettings(interval: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/settings`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ cron_interval: interval }),
+  });
+  if (!res.ok) throw new Error("Failed to update settings");
+}
