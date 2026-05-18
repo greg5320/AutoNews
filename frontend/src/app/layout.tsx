@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
-import { Inter, Geist } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
-
-const inter = Inter({ subsets: ["latin", "cyrillic"] });
+const inter = Inter({ 
+  subsets: ["latin", "cyrillic"],
+  variable: "--font-sans",
+});
 
 export const metadata: Metadata = {
   title: "AutoNews - AI Article Summarizer",
@@ -19,8 +20,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru" className={cn("font-sans", geist.variable)}>
-      <body className={inter.className}>
+    <html lang="ru" suppressHydrationWarning>
+      <body className={cn("min-h-screen bg-background font-sans antialiased", inter.variable)}>
         {children}
         <Toaster />
       </body>
