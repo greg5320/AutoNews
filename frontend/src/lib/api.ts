@@ -8,9 +8,11 @@ const API_BASE = isServer ? "http://app:8002" : "http://localhost:8002";
 
 export interface Article {
   ID: number;
+  OriginalURL: string | null;
   Title: string;
   Content: string;
   AISummary: string | null;
+  Tags: string[] | null;
   Status: string;
   CreatedAt: string;
 }

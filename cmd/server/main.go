@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/greg5320/AutoNews/internal/cron"
 	"github.com/greg5320/AutoNews/internal/db"
 	"github.com/greg5320/AutoNews/internal/llm"
 	"github.com/greg5320/AutoNews/internal/logger"
@@ -33,6 +34,11 @@ func main() {
 	geminiClient := llm.NewGeminiClient(apiKey)
 
 	articleService := service.NewArticleService(repo, geminiClient)
+
+	// Инициализируем и запускаем шедулер для парсинга RSS
+	scheduler := cron.NewScheduler(repo, articleService)
+	scheduler.Start()
+	defer scheduler.Stop()
 
 	// Поднимаем REST API
 	router := api.NewRouter(repo, articleService)
