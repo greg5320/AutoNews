@@ -1,8 +1,7 @@
 package repository
 
 import (
-	"database/sql"
-	"errors"
+	"log"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -18,7 +17,8 @@ func NewSettingsRepository(db *sqlx.DB) *SettingsRepository {
 func (r *SettingsRepository) Get(key string, defaultValue string) string {
 	var val string
 	err := r.db.Get(&val, "SELECT value FROM settings WHERE key = $1", key)
-	if errors.Is(err, sql.ErrNoRows) {
+	if err != nil {
+		log.Printf("Warning: failed to get setting %s: %v", key, err)
 		return defaultValue
 	}
 	return val

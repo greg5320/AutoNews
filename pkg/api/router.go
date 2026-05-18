@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -70,7 +71,8 @@ func (r *Router) updateSettings(c *gin.Context) {
 	}
 
 	if err := r.scheduler.UpdateInterval(input.CronInterval); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update scheduler"})
+		log.Printf("Error updating settings: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update scheduler: " + err.Error()})
 		return
 	}
 
