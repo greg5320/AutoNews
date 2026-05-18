@@ -51,6 +51,13 @@ func (r *ArticleRepository) UpdateAIAnalysis(id int, summary string, tags pq.Str
 	return err
 }
 
+// GetUnprocessed возвращает список статей, которые застряли в статусе 'new'
+func (r *ArticleRepository) GetUnprocessed() ([]models.Article, error) {
+	var articles []models.Article
+	err := r.db.Select(&articles, "SELECT * FROM articles WHERE status = 'new' ORDER BY created_at ASC")
+	return articles, err
+}
+
 // GetAll возвращает список всех статей, отсортированных по дате (свежие сверху)
 // TODO: добавить пагинацию, если статей станет слишком много
 func (r *ArticleRepository) GetAll() ([]models.Article, error) {

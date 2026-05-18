@@ -47,6 +47,14 @@ func (s *Scheduler) Stop() {
 
 func (s *Scheduler) runParsing() {
 	log.Println("[CRON] Starting RSS parsing...")
+	
+	// Сначала проверяем, нет ли залипших статей в статусе new
+	unprocessed, err := s.repo.GetUnprocessed()
+	if err == nil && len(unprocessed) > 0 {
+		log.Printf("[CRON] Found %d stuck articles, sending to Worker Pool\n", len(unprocessed))
+		go s.service.ProcessArticles(unprocessed)
+	}
+
 	feeds, err := s.feedRepo.GetAll()
 	if err != nil {
 		log.Printf("[CRON] Error loading feeds: %v\n", err)
