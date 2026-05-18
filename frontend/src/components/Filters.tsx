@@ -47,17 +47,18 @@ export function Filters({ feeds }: FiltersProps) {
   return (
     <div className="mb-6 flex gap-2 items-center">
       <Popover>
-        <PopoverTrigger asChild>
-          <Button 
-            variant="outline" 
+        <PopoverTrigger className="focus:outline-none focus:ring-0">
+          <div 
             className={cn(
-              "w-full sm:w-[250px] justify-start shadow-sm transition-all duration-200", 
-              isActive && "border-blue-500/50 bg-blue-50/50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 ring-1 ring-blue-500/50"
+              "inline-flex items-center justify-start whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 h-9 px-4 py-2 w-full sm:w-[250px] shadow-sm transition-all duration-200", 
+              isActive 
+                ? "border border-blue-500/50 bg-blue-50/50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 ring-1 ring-blue-500/50" 
+                : "border border-input bg-transparent hover:bg-accent hover:text-accent-foreground"
             )}
           >
             <Filter className={cn("mr-2 h-4 w-4 transition-transform duration-300", isActive && "rotate-180")} />
             {isActive ? "Фильтры (активны)" : "Фильтры"}
-          </Button>
+          </div>
         </PopoverTrigger>
         <PopoverContent className="w-[600px] p-0 overflow-hidden border-slate-200/60 dark:border-slate-800/60 backdrop-blur-xl bg-white/80 dark:bg-slate-950/80" align="start">
           <motion.div 
