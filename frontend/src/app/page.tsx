@@ -1,4 +1,4 @@
-import { fetchArticles } from "@/lib/api";
+import { fetchArticles, Article } from "@/lib/api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -9,7 +9,7 @@ import { ru } from "date-fns/locale";
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
-  let articles = [];
+  let articles: Article[] = [];
   try {
     articles = await fetchArticles();
   } catch (error) {
