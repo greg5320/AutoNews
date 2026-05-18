@@ -1,8 +1,12 @@
 package repository
 
 import (
+	"database/sql"
+	"errors"
+
 	"github.com/greg5320/AutoNews/internal/models"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 )
 
 type ArticleRepository struct {
@@ -13,11 +17,13 @@ func NewArticleRepository(db *sqlx.DB) *ArticleRepository {
 	return &ArticleRepository{db: db}
 }
 
-// Create сохраняет новую статью в базу
+// Create сохраняет новую статью в базу.
+// Если url уже есть (уникальный индекс), возвращает ошибку.
 func (r *ArticleRepository) Create(article *models.Article) (int, error) {
 	var id int
-	query := `INSERT INTO articles (title, content, status) VALUES ($1, $2, $3) RETURNING id`
-	err := r.db.QueryRow(query, article.Title, article.Content, "new").Scan(&id)
+	query := `INSERT INTO articles (title, content, status, original_url) 
+	          VALUES ($1, $2, $3, $4) RETURNING id`
+	err := r.db.QueryRow(query, article.Title, article.Content, "new", article.OriginalURL).Scan(&id)
 	return id, err
 }
 
@@ -28,10 +34,20 @@ func (r *ArticleRepository) GetByID(id int) (*models.Article, error) {
 	return &article, err
 }
 
-// UpdateSummary обновляет AI-саммари и меняет статус
-func (r *ArticleRepository) UpdateSummary(id int, summary string) error {
-	query := `UPDATE articles SET ai_summary = $1, status = 'done' WHERE id = $2`
-	_, err := r.db.Exec(query, summary, id)
+// GetByOriginalURL проверяет, есть ли уже такая статья
+func (r *ArticleRepository) GetByOriginalURL(url string) (*models.Article, error) {
+	var article models.Article
+	err := r.db.Get(&article, "SELECT * FROM articles WHERE original_url = $1", url)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil // Не найдена, это нормально
+	}
+	return &article, err
+}
+
+// UpdateAIAnalysis обновляет AI-саммари, теги и меняет статус
+func (r *ArticleRepository) UpdateAIAnalysis(id int, summary string, tags pq.StringArray) error {
+	query := `UPDATE articles SET ai_summary = $1, tags = $2, status = 'done' WHERE id = $3`
+	_, err := r.db.Exec(query, summary, tags, id)
 	return err
 }
 

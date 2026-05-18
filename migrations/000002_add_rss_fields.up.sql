@@ -1,0 +1,2 @@
+ALTER TABLE articles ADD COLUMN original_url TEXT UNIQUE;
+ALTER TABLE articles ADD COLUMN tags TEXT[];
