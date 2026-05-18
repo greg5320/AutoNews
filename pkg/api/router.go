@@ -35,6 +35,8 @@ func (r *Router) setupRoutes() {
 	r.engine.POST("/articles", r.createArticle)
 	r.engine.GET("/articles", r.getArticles)
 	r.engine.GET("/articles/:id", r.getArticle)
+	r.engine.DELETE("/articles", r.deleteAllArticles)
+	r.engine.DELETE("/articles/:id", r.deleteArticle)
 
 	r.engine.GET("/feeds", r.getFeeds)
 	r.engine.POST("/feeds", r.createFeed)
@@ -43,6 +45,28 @@ func (r *Router) setupRoutes() {
 
 func (r *Router) Run(addr string) error {
 	return r.engine.Run(addr)
+}
+
+func (r *Router) deleteAllArticles(c *gin.Context) {
+	if err := r.repo.DeleteAll(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete all articles"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "All articles deleted"})
+}
+
+func (r *Router) deleteArticle(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+	if err := r.repo.Delete(id); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete article"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Article deleted"})
 }
 
 func (r *Router) getArticles(c *gin.Context) {

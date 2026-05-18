@@ -77,3 +77,13 @@ func (r *ArticleRepository) GetAll(tag string, feedID int) ([]models.Article, er
 	err := r.db.Select(&articles, query, args...)
 	return articles, err
 }
+
+func (r *ArticleRepository) Delete(id int) error {
+	_, err := r.db.Exec("DELETE FROM articles WHERE id = $1", id)
+	return err
+}
+
+func (r *ArticleRepository) DeleteAll() error {
+	_, err := r.db.Exec("DELETE FROM articles")
+	return err
+}
