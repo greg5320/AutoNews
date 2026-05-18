@@ -5,12 +5,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Feed } from "@/lib/api";
 
 const ALLOWED_TAGS = [
-  "ИИ", "Go", "Python", "JavaScript", "TypeScript",
-  "Frontend", "Backend", "DevOps", "Крипто", "Безопасность",
-  "OpenSource", "Cloud", "Mobile", "Startup", "Hardware",
-  "Linux", "Windows", "Apple", "Google", "Data Science",
-  "Machine Learning", "Web3", "GameDev", "Архитектура", "Базы Данных",
-  "Сети", "SaaS", "Гаджеты", "Программирование", "Карьера",
+  "Политика", "Экономика", "Общество", "Происшествия", "Бизнес",
+  "Наука", "Технологии", "Медицина", "Здоровье", "Образование",
+  "Спорт", "Культура", "Искусство", "Кино", "Музыка",
+  "Путешествия", "Авто", "Недвижимость", "Криминал", "Экология",
+  "Погода", "Мода", "Еда", "Игры", "История",
+  "Финансы", "Психология", "Лайфстайл", "Религия", "Юмор",
 ];
 
 interface FiltersProps {
