@@ -1,21 +1,22 @@
-import { fetchArticles, Article } from "@/lib/api";
+import { fetchArticles, fetchFeeds, Article, Feed } from "@/lib/api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
+import { Filters } from "@/components/Filters";
 
-// Делаем страницу серверной, чтобы сразу отдавать HTML
 export const dynamic = 'force-dynamic';
 
-export default async function Home() {
+export default async function Home({ searchParams }: { searchParams: { tag?: string, feed_id?: string } }) {
   let articles: Article[] = [];
+  let feeds: Feed[] = [];
   try {
-    articles = await fetchArticles();
+    articles = await fetchArticles(searchParams.tag, searchParams.feed_id);
+    feeds = await fetchFeeds();
   } catch (error) {
-    console.error("Ошибка при загрузке статей:", error);
-    // TODO: добавить красивую плашку с ошибкой
+    console.error("Ошибка при загрузке:", error);
   }
 
   return (
@@ -37,9 +38,11 @@ export default async function Home() {
         </div>
       </div>
 
+      <Filters feeds={feeds} />
+
       {articles.length === 0 ? (
         <div className="text-center py-20 text-muted-foreground">
-          Пока нет ни одной статьи. Скоро крон-джоб парсера принесет свежие новости!
+          Ничего не найдено. Попробуйте сбросить фильтры.
         </div>
       ) : (
         <div className="grid gap-6 md:grid-cols-2">
@@ -78,11 +81,14 @@ export default async function Home() {
                   </p>
                 )}
               </CardContent>
-              {/* Рендерим теги, если они есть */}
               {article.Tags && article.Tags.length > 0 && (
                 <CardFooter className="pt-0 flex flex-wrap gap-2">
                   {article.Tags.map((tag, idx) => (
-                    <Badge key={idx} variant="secondary">{tag}</Badge>
+                    <Badge key={idx} variant="secondary">
+                      <Link href={`/?tag=${encodeURIComponent(tag)}`} className="hover:underline">
+                        {tag}
+                      </Link>
+                    </Badge>
                   ))}
                 </CardFooter>
               )}

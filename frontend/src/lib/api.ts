@@ -20,8 +20,13 @@ export interface Feed {
   created_at: string;
 }
 
-export async function fetchArticles(): Promise<Article[]> {
-  const res = await fetch(`${API_BASE}/articles`, { cache: "no-store" });
+export async function fetchArticles(tag?: string, feedId?: string): Promise<Article[]> {
+  const params = new URLSearchParams();
+  if (tag) params.set("tag", tag);
+  if (feedId) params.set("feed_id", feedId);
+  
+  const query = params.toString() ? `?${params.toString()}` : "";
+  const res = await fetch(`${API_BASE}/articles${query}`, { cache: "no-store" });
   if (!res.ok) throw new Error("Failed to load articles");
   return res.json();
 }
