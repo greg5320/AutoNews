@@ -2,7 +2,9 @@ package cron
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/greg5320/AutoNews/internal/models"
@@ -13,36 +15,75 @@ import (
 )
 
 type Scheduler struct {
-	c        *cronlib.Cron
-	parser   *rss.Parser
-	repo     *repository.ArticleRepository
-	feedRepo *repository.FeedRepository
-	service  *service.ArticleService
+	c            *cronlib.Cron
+	parser       *rss.Parser
+	repo         *repository.ArticleRepository
+	feedRepo     *repository.FeedRepository
+	settingsRepo *repository.SettingsRepository
+	service      *service.ArticleService
+	entryID      cronlib.EntryID
+	mu           sync.Mutex
 }
 
-func NewScheduler(repo *repository.ArticleRepository, feedRepo *repository.FeedRepository, svc *service.ArticleService) *Scheduler {
+func NewScheduler(repo *repository.ArticleRepository, feedRepo *repository.FeedRepository, settingsRepo *repository.SettingsRepository, svc *service.ArticleService) *Scheduler {
 	return &Scheduler{
-		c:        cronlib.New(),
-		parser:   rss.NewParser(),
-		repo:     repo,
-		feedRepo: feedRepo,
-		service:  svc,
+		c:            cronlib.New(),
+		parser:       rss.NewParser(),
+		repo:         repo,
+		feedRepo:     feedRepo,
+		settingsRepo: settingsRepo,
+		service:      svc,
 	}
 }
 
 func (s *Scheduler) Start() {
-	s.c.AddFunc("@every 10m", func() {
+	interval := s.settingsRepo.Get("cron_interval", "10")
+	spec := fmt.Sprintf("@every %sm", interval)
+
+	id, err := s.c.AddFunc(spec, func() {
 		s.runParsing()
 	})
+	
+	if err != nil {
+		log.Printf("Scheduler start error: %v\n", err)
+	}
 
+	s.entryID = id
 	s.c.Start()
-	log.Println("Scheduler started (@every 10m)")
+	log.Printf("Scheduler started (%s)\n", spec)
 	
 	go s.runParsing()
 }
 
 func (s *Scheduler) Stop() {
 	s.c.Stop()
+}
+
+func (s *Scheduler) UpdateInterval(minutes string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	spec := fmt.Sprintf("@every %sm", minutes)
+	
+	// Remove old job
+	if s.entryID != 0 {
+		s.c.Remove(s.entryID)
+	}
+
+	// Add new job
+	id, err := s.c.AddFunc(spec, func() {
+		s.runParsing()
+	})
+	
+	if err != nil {
+		return err
+	}
+
+	s.entryID = id
+	err = s.settingsRepo.Set("cron_interval", minutes)
+	
+	log.Printf("Scheduler interval updated to %s\n", spec)
+	return err
 }
 
 func (s *Scheduler) runParsing() {

@@ -6,24 +6,29 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/greg5320/AutoNews/internal/cron"
 	"github.com/greg5320/AutoNews/internal/models"
 	"github.com/greg5320/AutoNews/internal/repository"
 	"github.com/greg5320/AutoNews/internal/service"
 )
 
 type Router struct {
-	engine   *gin.Engine
-	repo     *repository.ArticleRepository
-	feedRepo *repository.FeedRepository
-	service  *service.ArticleService
+	engine       *gin.Engine
+	repo         *repository.ArticleRepository
+	feedRepo     *repository.FeedRepository
+	settingsRepo *repository.SettingsRepository
+	service      *service.ArticleService
+	scheduler    *cron.Scheduler
 }
 
-func NewRouter(repo *repository.ArticleRepository, feedRepo *repository.FeedRepository, svc *service.ArticleService) *Router {
+func NewRouter(repo *repository.ArticleRepository, feedRepo *repository.FeedRepository, settingsRepo *repository.SettingsRepository, svc *service.ArticleService, scheduler *cron.Scheduler) *Router {
 	r := &Router{
-		engine:   gin.Default(),
-		repo:     repo,
-		feedRepo: feedRepo,
-		service:  svc,
+		engine:       gin.Default(),
+		repo:         repo,
+		feedRepo:     feedRepo,
+		settingsRepo: settingsRepo,
+		service:      svc,
+		scheduler:    scheduler,
 	}
 
 	r.engine.Use(cors.Default())
@@ -41,10 +46,35 @@ func (r *Router) setupRoutes() {
 	r.engine.GET("/feeds", r.getFeeds)
 	r.engine.POST("/feeds", r.createFeed)
 	r.engine.DELETE("/feeds/:id", r.deleteFeed)
+
+	r.engine.GET("/settings", r.getSettings)
+	r.engine.PUT("/settings", r.updateSettings)
 }
 
 func (r *Router) Run(addr string) error {
 	return r.engine.Run(addr)
+}
+
+func (r *Router) getSettings(c *gin.Context) {
+	interval := r.settingsRepo.Get("cron_interval", "10")
+	c.JSON(http.StatusOK, gin.H{"cron_interval": interval})
+}
+
+func (r *Router) updateSettings(c *gin.Context) {
+	var input struct {
+		CronInterval string `json:"cron_interval" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := r.scheduler.UpdateInterval(input.CronInterval); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update scheduler"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Settings updated"})
 }
 
 func (r *Router) deleteAllArticles(c *gin.Context) {
