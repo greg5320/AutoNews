@@ -22,8 +22,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ru" suppressHydrationWarning>
-      <body className={cn("relative min-h-screen bg-background font-sans antialiased", inter.variable)}>
-        <DotPattern className="fixed inset-0 opacity-50 [mask-image:radial-gradient(ellipse_at_top,white,transparent)] z-[-1]" />
+      <body className={cn("relative min-h-screen bg-background font-sans antialiased overflow-x-hidden", inter.variable)}>
+        <div className="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
+          <DotPattern className="opacity-30 [mask-image:radial-gradient(ellipse_at_top,white,transparent)]" />
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[120px] dark:bg-blue-600/5 animate-pulse" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/10 rounded-full blur-[120px] dark:bg-purple-600/5 animate-pulse" style={{ animationDelay: '1s' }} />
+        </div>
         <div className="relative z-10">
           {children}
         </div>
