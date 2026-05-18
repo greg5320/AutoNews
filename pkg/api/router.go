@@ -180,19 +180,20 @@ func (r *Router) getFeeds(c *gin.Context) {
 
 func (r *Router) createFeed(c *gin.Context) {
 	var input struct {
-		URL string `json:"url" binding:"required"`
+		Name string `json:"name" binding:"required"`
+		URL  string `json:"url" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	id, err := r.feedRepo.Create(input.URL)
+	id, err := r.feedRepo.Create(input.Name, input.URL)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add feed"})
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"id": id, "url": input.URL})
+	c.JSON(http.StatusCreated, gin.H{"id": id, "name": input.Name, "url": input.URL})
 }
 
 func (r *Router) deleteFeed(c *gin.Context) {

@@ -13,9 +13,9 @@ func NewFeedRepository(db *sqlx.DB) *FeedRepository {
 	return &FeedRepository{db: db}
 }
 
-func (r *FeedRepository) Create(url string) (int, error) {
+func (r *FeedRepository) Create(name, url string) (int, error) {
 	var id int
-	err := r.db.QueryRow(`INSERT INTO rss_feeds (url) VALUES ($1) RETURNING id`, url).Scan(&id)
+	err := r.db.QueryRow(`INSERT INTO rss_feeds (name, url) VALUES ($1, $2) RETURNING id`, name, url).Scan(&id)
 	return id, err
 }
 

@@ -1,0 +1,1 @@
+ALTER TABLE rss_feeds ADD COLUMN name VARCHAR(255) NOT NULL DEFAULT 'Hacker News';
