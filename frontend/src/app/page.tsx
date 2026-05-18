@@ -57,12 +57,20 @@ export default async function Home({ searchParams }: { searchParams: { tag?: str
           animate="show"
           className="grid gap-6 md:grid-cols-2"
         >
-          {articles.map((article) => (
+          {articles.map((article) => {
+            const feed = feeds.find(f => f.id === article.FeedID);
+            return (
             <ArticleCard key={article.ID} variants={articleCardVariants}>
               <Card className="flex flex-col h-full hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
                 <CardHeader>
                   <div className="flex justify-between items-start gap-4">
                     <div className="flex-1">
+                      {feed && (
+                        <div className="mb-2 inline-flex items-center text-[10px] uppercase tracking-wider font-bold text-slate-500 bg-slate-100 dark:bg-slate-900 px-2 py-0.5 rounded-sm">
+                          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
+                          {feed.name}
+                        </div>
+                      )}
                       <CardTitle className="text-xl line-clamp-2 mb-2 font-semibold">
                         {article.OriginalURL ? (
                           <a href={article.OriginalURL} target="_blank" rel="noreferrer" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
@@ -111,7 +119,7 @@ export default async function Home({ searchParams }: { searchParams: { tag?: str
                 )}
               </Card>
             </ArticleCard>
-          ))}
+          )})}
         </ArticleList>
       )}
     </main>
