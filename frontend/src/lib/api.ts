@@ -1,7 +1,10 @@
 // src/lib/api.ts
 
-// TODO: Вынести базовый урл в переменные окружения (.env.local), чтобы на проде не отвалилось
-const API_BASE = "http://localhost:8080";
+// Если код выполняется на сервере (Next.js SSR) внутри Docker, мы обращаемся к 'app' (имя сервиса backend'а в docker-compose).
+// Если в браузере (клиентский компонент), то стучимся на localhost.
+// TODO: Вынести урлы в переменные окружения (.env.local) для прода.
+const isServer = typeof window === 'undefined';
+const API_BASE = isServer ? "http://app:8080" : "http://localhost:8080";
 
 export interface Article {
   ID: number;
