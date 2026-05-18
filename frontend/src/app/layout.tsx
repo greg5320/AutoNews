@@ -22,16 +22,25 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ru" suppressHydrationWarning>
-      <body className={cn("relative min-h-screen bg-background font-sans antialiased overflow-x-hidden", inter.variable)}>
+      <body className={cn("relative min-h-screen bg-slate-50 dark:bg-slate-950 font-sans antialiased overflow-x-hidden", inter.variable)}>
         <div className="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
-          <DotPattern className="opacity-30 [mask-image:radial-gradient(ellipse_at_top,white,transparent)]" />
-          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[120px] dark:bg-blue-600/5 animate-pulse" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/10 rounded-full blur-[120px] dark:bg-purple-600/5 animate-pulse" style={{ animationDelay: '1s' }} />
+          <div 
+            className="absolute inset-0 opacity-40 dark:opacity-20"
+            style={{
+              background: `
+                radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.4) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(147, 51, 234, 0.4) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(236, 72, 153, 0.2) 0%, transparent 70%)
+              `,
+              filter: 'blur(80px)',
+            }}
+          />
+          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay" />
         </div>
         <div className="relative z-10">
           {children}
         </div>
-        <Toaster />
+        <Toaster position="top-right" richColors />
       </body>
     </html>
   );

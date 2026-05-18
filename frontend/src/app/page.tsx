@@ -25,8 +25,8 @@ export default async function Home({ searchParams }: { searchParams: { tag?: str
     <main className="container mx-auto py-10 max-w-5xl px-4 relative z-10">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-slate-100 dark:to-slate-400">
-            AutoNews 📰
+          <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+            AutoNews
           </h1>
           <p className="text-muted-foreground mt-2">
             Агрегатор статей с AI-выжимкой. Написано с душой.
@@ -57,11 +57,11 @@ export default async function Home({ searchParams }: { searchParams: { tag?: str
         >
           {articles.map((article) => (
             <ArticleCard key={article.ID} variants={articleCardVariants}>
-              <Card className="flex flex-col h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border-slate-200/60 dark:border-slate-800/60">
+              <Card className="flex flex-col h-full hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
                 <CardHeader>
                   <div className="flex justify-between items-start gap-4">
                     <div className="flex-1">
-                      <CardTitle className="text-xl line-clamp-2 mb-2">
+                      <CardTitle className="text-xl line-clamp-2 mb-2 font-semibold">
                         {article.OriginalURL ? (
                           <a href={article.OriginalURL} target="_blank" rel="noreferrer" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                             {article.Title}
@@ -71,12 +71,12 @@ export default async function Home({ searchParams }: { searchParams: { tag?: str
                         )}
                       </CardTitle>
                       <div className="flex items-center gap-2">
-                        <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap font-medium ${
-                          article.Status === 'done' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
+                        <span className={`text-xs px-2 py-1 rounded-md whitespace-nowrap font-medium ${
+                          article.Status === 'done' ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300'
                         }`}>
                           {article.Status === 'done' ? 'Готово' : 'В обработке'}
                         </span>
-                        <CardDescription className="m-0">
+                        <CardDescription className="m-0 text-slate-500">
                           {format(new Date(article.CreatedAt), "d MMMM yyyy, HH:mm", { locale: ru })}
                         </CardDescription>
                       </div>
@@ -86,8 +86,8 @@ export default async function Home({ searchParams }: { searchParams: { tag?: str
                 </CardHeader>
                 <CardContent className="flex-1">
                   {article.Status === 'done' && article.AISummary ? (
-                    <div className="bg-slate-50/80 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800 text-sm text-slate-700 dark:text-slate-300 shadow-sm">
-                      <span className="font-semibold block mb-2 text-slate-900 dark:text-slate-100">✨ Самое важное:</span>
+                    <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg border border-slate-100 dark:border-slate-800 text-sm text-slate-700 dark:text-slate-300 shadow-inner">
+                      <span className="font-bold block mb-2 text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[10px]">Самое важное:</span>
                       <div className="leading-relaxed">{article.AISummary}</div>
                     </div>
                   ) : (

@@ -60,22 +60,22 @@ export function Filters({ feeds }: FiltersProps) {
             {isActive ? "Фильтры (активны)" : "Фильтры"}
           </div>
         </PopoverTrigger>
-        <PopoverContent className="w-[600px] p-0 overflow-hidden border-slate-200/60 dark:border-slate-800/60 backdrop-blur-xl bg-white/80 dark:bg-slate-950/80" align="start">
+        <PopoverContent className="w-[600px] p-0 overflow-hidden border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-xl" align="start">
           <motion.div 
-            initial={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
             className="flex h-[350px] divide-x divide-slate-200 dark:divide-slate-800"
           >
             
             {/* Левая колонка: Источники */}
             <div className="w-1/2 flex flex-col">
-              <div className="p-3 font-semibold text-sm border-b bg-muted/30">
+              <div className="p-3 font-bold text-[10px] uppercase tracking-wider border-b bg-slate-50 dark:bg-slate-900 text-slate-500">
                 Ленты (Источники)
               </div>
               <div className="p-2 overflow-y-auto flex-1 space-y-1 custom-scrollbar">
                 <Button
                   variant="ghost"
-                  className={cn("w-full justify-start font-normal transition-colors", currentFeed === "all" && "bg-blue-100/50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium")}
+                  className={cn("w-full justify-start font-normal transition-colors", currentFeed === "all" && "bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-semibold")}
                   onClick={() => handleFilter("feed_id", "all")}
                 >
                   Все источники
@@ -84,7 +84,7 @@ export function Filters({ feeds }: FiltersProps) {
                   <Button
                     key={f.id}
                     variant="ghost"
-                    className={cn("w-full justify-start font-normal truncate transition-colors", currentFeed === f.id.toString() && "bg-blue-100/50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium")}
+                    className={cn("w-full justify-start font-normal truncate transition-colors", currentFeed === f.id.toString() && "bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-semibold")}
                     onClick={() => handleFilter("feed_id", f.id.toString())}
                     title={f.url}
                   >
@@ -96,13 +96,13 @@ export function Filters({ feeds }: FiltersProps) {
 
             {/* Правая колонка: Теги */}
             <div className="w-1/2 flex flex-col">
-              <div className="p-3 font-semibold text-sm border-b bg-muted/30">
+              <div className="p-3 font-bold text-[10px] uppercase tracking-wider border-b bg-slate-50 dark:bg-slate-900 text-slate-500">
                 Теги
               </div>
               <div className="p-2 overflow-y-auto flex-1 space-y-1 custom-scrollbar">
                 <Button
                   variant="ghost"
-                  className={cn("w-full justify-start font-normal transition-colors", currentTag === "all" && "bg-blue-100/50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium")}
+                  className={cn("w-full justify-start font-normal transition-colors", currentTag === "all" && "bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-semibold")}
                   onClick={() => handleFilter("tag", "all")}
                 >
                   Все теги
@@ -111,7 +111,7 @@ export function Filters({ feeds }: FiltersProps) {
                   <Button
                     key={t}
                     variant="ghost"
-                    className={cn("w-full justify-start font-normal transition-colors", currentTag === t && "bg-blue-100/50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium")}
+                    className={cn("w-full justify-start font-normal transition-colors", currentTag === t && "bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-semibold")}
                     onClick={() => handleFilter("tag", t)}
                   >
                     {t}
