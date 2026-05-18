@@ -10,6 +10,15 @@ import (
 	"strings"
 )
 
+var AllowedTags = []string{
+	"ИИ", "Go", "Python", "JavaScript", "TypeScript",
+	"Frontend", "Backend", "DevOps", "Крипто", "Безопасность",
+	"OpenSource", "Cloud", "Mobile", "Startup", "Hardware",
+	"Linux", "Windows", "Apple", "Google", "Data Science",
+	"Machine Learning", "Web3", "GameDev", "Архитектура", "Базы Данных",
+	"Сети", "SaaS", "Гаджеты", "Программирование", "Карьера",
+}
+
 type AIAnalysisResult struct {
 	Summary string   `json:"summary"`
 	Tags    []string `json:"tags"`
@@ -28,12 +37,14 @@ func NewGeminiClient(apiKey string) *GeminiClient {
 }
 
 func (g *GeminiClient) AnalyzeText(ctx context.Context, text string) (*AIAnalysisResult, error) {
-	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=%s", g.apiKey)
+	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash:generateContent?key=%s", g.apiKey)
 
-	prompt := `Проанализируй новость. Сделай краткую выжимку (summary) и придумай от 3 до 5 релевантных тегов (tags).
+	allowedTagsStr := strings.Join(AllowedTags, ", ")
+	prompt := fmt.Sprintf(`Проанализируй новость. Сделай краткую выжимку (summary) и выбери от 3 до 5 релевантных тегов (tags).
+ВНИМАНИЕ: Теги можно выбирать СТРОГО и ТОЛЬКО из этого списка: [%s].
 Верни ответ СТРОГО в формате JSON, без маркдауна и лишних символов:
 {"summary": "текст", "tags": ["тег1", "тег2"]}
-Текст: ` + text
+Текст: %s`, allowedTagsStr, text)
 
 	payload := map[string]interface{}{
 		"contents": []map[string]interface{}{
@@ -47,6 +58,7 @@ func (g *GeminiClient) AnalyzeText(ctx context.Context, text string) (*AIAnalysi
 			"responseMimeType": "application/json",
 		},
 	}
+
 
 	body, err := json.Marshal(payload)
 	if err != nil {
