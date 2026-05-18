@@ -35,4 +35,10 @@ func (r *ArticleRepository) UpdateSummary(id int, summary string) error {
 	return err
 }
 
-// TODO: добавить метод GetAll с пагинацией для главной страницы
+// GetAll возвращает список всех статей, отсортированных по дате (свежие сверху)
+// TODO: добавить пагинацию, если статей станет слишком много
+func (r *ArticleRepository) GetAll() ([]models.Article, error) {
+	var articles []models.Article
+	err := r.db.Select(&articles, "SELECT * FROM articles ORDER BY created_at DESC")
+	return articles, err
+}

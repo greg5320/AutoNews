@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/greg5320/AutoNews/internal/models"
 	"github.com/greg5320/AutoNews/internal/repository"
@@ -22,17 +23,37 @@ func NewRouter(repo *repository.ArticleRepository, svc *service.ArticleService) 
 		repo:    repo,
 		service: svc,
 	}
+
+	// Настраиваем CORS, чтобы фронтенд на NextJS мог спокойно дергать API
+	r.engine.Use(cors.Default())
+
 	r.setupRoutes()
 	return r
 }
 
 func (r *Router) setupRoutes() {
 	r.engine.POST("/articles", r.createArticle)
+	r.engine.GET("/articles", r.getArticles)
 	r.engine.GET("/articles/:id", r.getArticle)
 }
 
 func (r *Router) Run(addr string) error {
 	return r.engine.Run(addr)
+}
+
+func (r *Router) getArticles(c *gin.Context) {
+	articles, err := r.repo.GetAll()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось загрузить список статей"})
+		return
+	}
+
+	// Если пусто, вернем пустой массив вместо null
+	if articles == nil {
+		articles = []models.Article{}
+	}
+
+	c.JSON(http.StatusOK, articles)
 }
 
 func (r *Router) createArticle(c *gin.Context) {
