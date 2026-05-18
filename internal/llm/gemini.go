@@ -37,7 +37,7 @@ func NewGeminiClient(apiKey string) *GeminiClient {
 }
 
 func (g *GeminiClient) AnalyzeText(ctx context.Context, text string) (*AIAnalysisResult, error) {
-	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=%s", g.apiKey)
+	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=%s", g.apiKey)
 
 	allowedTagsStr := strings.Join(AllowedTags, ", ")
 	prompt := fmt.Sprintf(`Проанализируй новость. Сделай краткую выжимку (summary) и выбери от 3 до 5 релевантных тегов (tags).
