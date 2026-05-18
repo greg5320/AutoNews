@@ -27,9 +27,14 @@ export default async function Home() {
             Агрегатор статей с AI-выжимкой. Написано с душой.
           </p>
         </div>
-        <Link href="/add">
-          <Button>Добавить статью</Button>
-        </Link>
+        <div className="flex gap-4">
+          <Link href="/settings">
+            <Button variant="outline">Настройки RSS</Button>
+          </Link>
+          <Link href="/add">
+            <Button>Добавить статью</Button>
+          </Link>
+        </div>
       </div>
 
       {articles.length === 0 ? (
