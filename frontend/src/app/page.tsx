@@ -6,6 +6,7 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { Filters } from "@/components/Filters";
+import { DeleteAllButton, DeleteArticleButton } from "@/components/DeleteButtons";
 
 export const dynamic = 'force-dynamic';
 
@@ -29,6 +30,7 @@ export default async function Home({ searchParams }: { searchParams: { tag?: str
           </p>
         </div>
         <div className="flex gap-4">
+          <DeleteAllButton />
           <Link href="/settings">
             <Button variant="outline">Настройки RSS</Button>
           </Link>
@@ -50,24 +52,29 @@ export default async function Home({ searchParams }: { searchParams: { tag?: str
             <Card key={article.ID} className="flex flex-col">
               <CardHeader>
                 <div className="flex justify-between items-start gap-4">
-                  <CardTitle className="text-xl line-clamp-2">
-                    {article.OriginalURL ? (
-                      <a href={article.OriginalURL} target="_blank" rel="noreferrer" className="hover:underline">
-                        {article.Title}
-                      </a>
-                    ) : (
-                      article.Title
-                    )}
-                  </CardTitle>
-                  <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
-                    article.Status === 'done' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {article.Status === 'done' ? 'Готово' : 'В обработке'}
-                  </span>
+                  <div className="flex-1">
+                    <CardTitle className="text-xl line-clamp-2 mb-2">
+                      {article.OriginalURL ? (
+                        <a href={article.OriginalURL} target="_blank" rel="noreferrer" className="hover:underline">
+                          {article.Title}
+                        </a>
+                      ) : (
+                        article.Title
+                      )}
+                    </CardTitle>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
+                        article.Status === 'done' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {article.Status === 'done' ? 'Готово' : 'В обработке'}
+                      </span>
+                      <CardDescription className="m-0">
+                        {format(new Date(article.CreatedAt), "d MMMM yyyy, HH:mm", { locale: ru })}
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <DeleteArticleButton id={article.ID} />
                 </div>
-                <CardDescription>
-                  {format(new Date(article.CreatedAt), "d MMMM yyyy, HH:mm", { locale: ru })}
-                </CardDescription>
               </CardHeader>
               <CardContent className="flex-1">
                 {article.Status === 'done' && article.AISummary ? (

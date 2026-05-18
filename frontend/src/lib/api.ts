@@ -40,6 +40,16 @@ export async function createArticle(title: string, content: string): Promise<voi
   if (!res.ok) throw new Error("Failed to create article");
 }
 
+export async function deleteArticle(id: number): Promise<void> {
+  const res = await fetch(`${API_BASE}/articles/${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Failed to delete article");
+}
+
+export async function deleteAllArticles(): Promise<void> {
+  const res = await fetch(`${API_BASE}/articles`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Failed to delete all articles");
+}
+
 export async function fetchFeeds(): Promise<Feed[]> {
   const res = await fetch(`${API_BASE}/feeds`, { cache: "no-store" });
   if (!res.ok) throw new Error("Failed to load feeds");
