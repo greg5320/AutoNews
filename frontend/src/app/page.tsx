@@ -76,7 +76,7 @@ export default async function Home({ searchParams }: { searchParams: { tag?: str
               <CardContent className="flex-1">
                 {article.Status === 'done' && article.AISummary ? (
                   <div className="bg-slate-50 p-4 rounded-md border border-slate-100 text-sm text-slate-700">
-                    <span className="font-semibold block mb-2 text-slate-900">✨ Нейро-выжимка:</span>
+                    <span className="font-semibold block mb-2 text-slate-900">✨ Самое важное:</span>
                     {article.AISummary}
                   </div>
                 ) : (
