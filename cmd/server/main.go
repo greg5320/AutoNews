@@ -25,17 +25,18 @@ func main() {
 
 	repo := repository.NewArticleRepository(database)
 	feedRepo := repository.NewFeedRepository(database)
+	settingsRepo := repository.NewSettingsRepository(database)
 	
 	apiKey := os.Getenv("GEMINI_API_KEY")
 	geminiClient := llm.NewGeminiClient(apiKey)
 
 	articleService := service.NewArticleService(repo, geminiClient)
 
-	scheduler := cron.NewScheduler(repo, feedRepo, articleService)
+	scheduler := cron.NewScheduler(repo, feedRepo, settingsRepo, articleService)
 	scheduler.Start()
 	defer scheduler.Stop()
 
-	router := api.NewRouter(repo, feedRepo, articleService)
+	router := api.NewRouter(repo, feedRepo, settingsRepo, articleService, scheduler)
 	log.Println("Слушаем порт :8002...")
 	if err := router.Run(":8002"); err != nil {
 		log.Fatalf("Ошибка запуска сервера: %v", err)
