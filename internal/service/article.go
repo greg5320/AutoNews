@@ -34,17 +34,17 @@ func (s *ArticleService) worker(id int, jobs <-chan models.Article, wg *sync.Wai
 		// Ставим жесткий таймаут в 10 секунд на один запрос к LLM
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 
-		summary, err := s.llm.SummarizeText(ctx, article.Content)
+		analysis, err := s.llm.AnalyzeText(ctx, article.Content)
 		cancel() // освобождаем ресурсы контекста
 
 		if err != nil {
-			log.Printf("Воркер %d: Ошибка получения summary (статья %d): %v\n", id, article.ID, err)
+			log.Printf("Воркер %d: Ошибка получения AI анализа (статья %d): %v\n", id, article.ID, err)
 			continue
 		}
 
-		err = s.repo.UpdateSummary(article.ID, summary)
+		err = s.repo.UpdateAIAnalysis(article.ID, analysis.Summary, analysis.Tags)
 		if err != nil {
-			log.Printf("Воркер %d: Ошибка сохранения summary (статья %d): %v\n", id, article.ID, err)
+			log.Printf("Воркер %d: Ошибка сохранения анализа в БД (статья %d): %v\n", id, article.ID, err)
 			continue
 		}
 
