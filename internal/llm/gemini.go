@@ -28,7 +28,7 @@ func NewGeminiClient(apiKey string) *GeminiClient {
 }
 
 func (g *GeminiClient) AnalyzeText(ctx context.Context, text string) (*AIAnalysisResult, error) {
-	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash:generateContent?key=%s", g.apiKey)
+	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=%s", g.apiKey)
 
 	prompt := `Проанализируй новость. Сделай краткую выжимку (summary) и придумай от 3 до 5 релевантных тегов (tags).
 Верни ответ СТРОГО в формате JSON, без маркдауна и лишних символов:

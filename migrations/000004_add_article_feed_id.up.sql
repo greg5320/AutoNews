@@ -1,0 +1,1 @@
+ALTER TABLE articles ADD COLUMN feed_id INT REFERENCES rss_feeds(id) ON DELETE SET NULL;

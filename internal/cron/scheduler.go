@@ -48,7 +48,6 @@ func (s *Scheduler) Stop() {
 func (s *Scheduler) runParsing() {
 	log.Println("[CRON] Starting RSS parsing...")
 	
-	// Сначала проверяем, нет ли залипших статей в статусе new
 	unprocessed, err := s.repo.GetUnprocessed()
 	if err == nil && len(unprocessed) > 0 {
 		log.Printf("[CRON] Found %d stuck articles, sending to Worker Pool\n", len(unprocessed))
@@ -62,17 +61,17 @@ func (s *Scheduler) runParsing() {
 	}
 
 	for _, feed := range feeds {
-		s.fetchAndProcess(feed.URL)
+		s.fetchAndProcess(feed)
 	}
 }
 
-func (s *Scheduler) fetchAndProcess(url string) {
+func (s *Scheduler) fetchAndProcess(feed models.Feed) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	articles, err := s.parser.FetchArticles(ctx, url)
+	articles, err := s.parser.FetchArticles(ctx, feed.URL)
 	if err != nil {
-		log.Printf("[CRON] Parse error %s: %v\n", url, err)
+		log.Printf("[CRON] Parse error %s: %v\n", feed.URL, err)
 		return
 	}
 
@@ -88,6 +87,7 @@ func (s *Scheduler) fetchAndProcess(url string) {
 			continue
 		}
 
+		article.FeedID = &feed.ID
 		id, err := s.repo.Create(&article)
 		if err != nil {
 			log.Printf("[CRON] DB insert error: %v\n", err)

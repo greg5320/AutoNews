@@ -46,7 +46,17 @@ func (r *Router) Run(addr string) error {
 }
 
 func (r *Router) getArticles(c *gin.Context) {
-	articles, err := r.repo.GetAll()
+	tag := c.Query("tag")
+	feedIDStr := c.Query("feed_id")
+	
+	feedID := 0
+	if feedIDStr != "" {
+		if id, err := strconv.Atoi(feedIDStr); err == nil {
+			feedID = id
+		}
+	}
+
+	articles, err := r.repo.GetAll(tag, feedID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load articles"})
 		return
