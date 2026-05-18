@@ -20,7 +20,7 @@ services:
   app:
     build: .
     ports:
-      - "8080:8080"
+      - "8002:8002"
     environment:
       # TODO: подсунуть нормальный ключ для Gemini
       - GEMINI_API_KEY=${GEMINI_API_KEY}
@@ -33,7 +33,9 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "3002:3002"
+    environment:
+      - PORT=3002
     depends_on:
       - app
 

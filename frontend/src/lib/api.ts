@@ -4,7 +4,7 @@
 // Если в браузере (клиентский компонент), то стучимся на localhost.
 // TODO: Вынести урлы в переменные окружения (.env.local) для прода.
 const isServer = typeof window === 'undefined';
-const API_BASE = isServer ? "http://app:8080" : "http://localhost:8080";
+const API_BASE = isServer ? "http://app:8002" : "http://localhost:8002";
 
 export interface Article {
   ID: number;

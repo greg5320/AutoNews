@@ -36,8 +36,8 @@ func main() {
 
 	// Поднимаем REST API
 	router := api.NewRouter(repo, articleService)
-	log.Println("Слушаем порт :8080...")
-	if err := router.Run(":8080"); err != nil {
+	log.Println("Слушаем порт :8002...")
+	if err := router.Run(":8002"); err != nil {
 		log.Fatalf("Ошибка запуска сервера: %v", err)
 	}
 }
