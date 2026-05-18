@@ -14,6 +14,7 @@ import { ru } from "date-fns/locale";
 
 export default function SettingsPage() {
   const [feeds, setFeeds] = useState<Feed[]>([]);
+  const [newName, setNewName] = useState("");
   const [newUrl, setNewUrl] = useState("");
   const [loading, setLoading] = useState(true);
   const [interval, setIntervalVal] = useState("10");
@@ -39,10 +40,14 @@ export default function SettingsPage() {
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newUrl) return;
+    if (!newUrl || !newName) {
+      toast.error("Заполните оба поля");
+      return;
+    }
     try {
-      await createFeed(newUrl);
+      await createFeed(newName, newUrl);
       toast.success("Фид добавлен");
+      setNewName("");
       setNewUrl("");
       loadData();
     } catch (e) {
@@ -114,7 +119,13 @@ export default function SettingsPage() {
       <h2 className="text-2xl font-semibold mb-4">Источники (Feeds)</h2>
       <form onSubmit={handleAdd} className="flex gap-4 mb-6">
         <Input 
-          placeholder="https://hnrss.org/frontpage" 
+          placeholder="Название (напр. Hacker News)" 
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          className="w-1/3"
+        />
+        <Input 
+          placeholder="URL (напр. https://hnrss.org/frontpage)" 
           value={newUrl}
           onChange={(e) => setNewUrl(e.target.value)}
           className="flex-1"
@@ -128,6 +139,7 @@ export default function SettingsPage() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Название</TableHead>
               <TableHead>URL</TableHead>
               <TableHead>Дата добавления</TableHead>
               <TableHead className="w-[100px]"></TableHead>
@@ -135,13 +147,14 @@ export default function SettingsPage() {
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow><TableCell colSpan={3} className="text-center">Загрузка...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={4} className="text-center">Загрузка...</TableCell></TableRow>
             ) : feeds.length === 0 ? (
-              <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground">Нет добавленных фидов</TableCell></TableRow>
+              <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">Нет добавленных фидов</TableCell></TableRow>
             ) : (
               feeds.map((feed) => (
                 <TableRow key={feed.id}>
-                  <TableCell className="font-medium">{feed.url}</TableCell>
+                  <TableCell className="font-medium">{feed.name}</TableCell>
+                  <TableCell className="text-muted-foreground text-sm">{feed.url}</TableCell>
                   <TableCell>{format(new Date(feed.created_at), "d MMM yyyy, HH:mm", { locale: ru })}</TableCell>
                   <TableCell>
                     <Button variant="ghost" size="icon" onClick={() => handleDelete(feed.id)} className="text-destructive">

@@ -16,6 +16,7 @@ export interface Article {
 
 export interface Feed {
   id: number;
+  name: string;
   url: string;
   created_at: string;
 }
@@ -56,11 +57,11 @@ export async function fetchFeeds(): Promise<Feed[]> {
   return res.json();
 }
 
-export async function createFeed(url: string): Promise<void> {
+export async function createFeed(name: string, url: string): Promise<void> {
   const res = await fetch(`${API_BASE}/feeds`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ url }),
+    body: JSON.stringify({ name, url }),
   });
   if (!res.ok) throw new Error("Failed to create feed");
 }

@@ -72,7 +72,7 @@ export function Filters({ feeds }: FiltersProps) {
                     onClick={() => handleFilter("feed_id", f.id.toString())}
                     title={f.url}
                   >
-                    {f.url.replace(/^https?:\/\//, '')}
+                    {f.name}
                   </Button>
                 ))}
               </div>
