@@ -33,9 +33,9 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "3002:3002"
+      - "2000:2000"
     environment:
-      - PORT=3002
+      - PORT=2000
     depends_on:
       - app
 
