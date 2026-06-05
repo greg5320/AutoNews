@@ -8,6 +8,8 @@ import (
 	"io"
 	"net/http"
 	"strings"
+
+	"github.com/greg5320/AutoNews/internal/metrics"
 )
 
 var AllowedTags = []string{
@@ -90,6 +92,11 @@ func (g *GeminiClient) AnalyzeText(ctx context.Context, text string) (*AIAnalysi
 				} `json:"parts"`
 			} `json:"content"`
 		} `json:"candidates"`
+		UsageMetadata struct {
+			PromptTokenCount     int `json:"promptTokenCount"`
+			CandidatesTokenCount int `json:"candidatesTokenCount"`
+			TotalTokenCount      int `json:"totalTokenCount"`
+		} `json:"usageMetadata"`
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&geminiResp); err != nil {
@@ -99,6 +106,11 @@ func (g *GeminiClient) AnalyzeText(ctx context.Context, text string) (*AIAnalysi
 	if len(geminiResp.Candidates) == 0 || len(geminiResp.Candidates[0].Content.Parts) == 0 {
 		return nil, fmt.Errorf("пустой ответ от модели")
 	}
+
+	// Записываем метрики токенов в Prometheus
+	metrics.GeminiTokensSpent.WithLabelValues("prompt").Add(float64(geminiResp.UsageMetadata.PromptTokenCount))
+	metrics.GeminiTokensSpent.WithLabelValues("candidates").Add(float64(geminiResp.UsageMetadata.CandidatesTokenCount))
+	metrics.GeminiTokensSpent.WithLabelValues("total").Add(float64(geminiResp.UsageMetadata.TotalTokenCount))
 
 	rawText := geminiResp.Candidates[0].Content.Parts[0].Text
 	rawText = strings.TrimPrefix(rawText, "```json")

@@ -4,13 +4,16 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/greg5320/AutoNews/internal/cron"
+	"github.com/greg5320/AutoNews/internal/metrics"
 	"github.com/greg5320/AutoNews/internal/models"
 	"github.com/greg5320/AutoNews/internal/repository"
 	"github.com/greg5320/AutoNews/internal/service"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type Router struct {
@@ -33,11 +36,38 @@ func NewRouter(repo *repository.ArticleRepository, feedRepo *repository.FeedRepo
 	}
 
 	r.engine.Use(cors.Default())
+	r.engine.Use(prometheusMiddleware())
 	r.setupRoutes()
 	return r
 }
 
+func prometheusMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		start := time.Now()
+		
+		metrics.ActiveUsers.Inc()
+		defer metrics.ActiveUsers.Dec()
+
+		c.Next()
+
+		duration := time.Since(start).Seconds()
+		status := strconv.Itoa(c.Writer.Status())
+		method := c.Request.Method
+		path := c.FullPath()
+		if path == "" {
+			path = "unknown"
+		}
+
+		if path != "/metrics" {
+			metrics.HTTPRequestsTotal.WithLabelValues(method, path, status).Inc()
+			metrics.HTTPRequestDuration.WithLabelValues(method, path).Observe(duration)
+		}
+	}
+}
+
 func (r *Router) setupRoutes() {
+	r.engine.GET("/metrics", gin.WrapH(promhttp.Handler()))
+
 	r.engine.POST("/articles", r.createArticle)
 	r.engine.GET("/articles", r.getArticles)
 	r.engine.GET("/articles/:id", r.getArticle)
