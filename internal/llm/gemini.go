@@ -112,6 +112,14 @@ func (g *GeminiClient) AnalyzeText(ctx context.Context, text string) (*AIAnalysi
 	metrics.GeminiTokensSpent.WithLabelValues("candidates").Add(float64(geminiResp.UsageMetadata.CandidatesTokenCount))
 	metrics.GeminiTokensSpent.WithLabelValues("total").Add(float64(geminiResp.UsageMetadata.TotalTokenCount))
 
+	// Рассчитываем приблизительную стоимость для Gemini 3.1 Flash-Lite:
+	// Входные токены (prompt): $0.10 за 1,000,000 токенов ($0.00000010 за штуку)
+	// Выходные токены (candidates): $0.40 за 1,000,000 токенов ($0.00000040 за штуку)
+	promptCost := float64(geminiResp.UsageMetadata.PromptTokenCount) * 0.10 / 1000000
+	candidatesCost := float64(geminiResp.UsageMetadata.CandidatesTokenCount) * 0.40 / 1000000
+	totalCost := promptCost + candidatesCost
+	metrics.GeminiCostUSD.Add(totalCost)
+
 	rawText := geminiResp.Candidates[0].Content.Parts[0].Text
 	rawText = strings.TrimPrefix(rawText, "```json")
 	rawText = strings.TrimSuffix(rawText, "```")

@@ -15,6 +15,14 @@ var (
 		[]string{"type"},
 	)
 
+	// GeminiCostUSD считает примерную стоимость запросов к Gemini в долларах США.
+	GeminiCostUSD = promauto.NewCounter(
+		prometheus.CounterOpts{
+			Name: "autonews_gemini_cost_usd_total",
+			Help: "Примерная стоимость запросов к Gemini в долларах США.",
+		},
+	)
+
 	// HTTPRequestsTotal считает количество обработанных HTTP-запросов.
 	HTTPRequestsTotal = promauto.NewCounterVec(
 		prometheus.CounterOpts{
