@@ -3,11 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { format } from "date-fns";
-import { ru } from "date-fns/locale";
 import { Filters } from "@/components/Filters";
 import { DeleteAllButton, DeleteArticleButton } from "@/components/DeleteButtons";
 import { RefreshButton } from "@/components/RefreshButton";
+import { FormattedDate } from "@/components/FormattedDate";
 import { ArticleList, ArticleCard, articleListVariants, articleCardVariants } from "@/components/ui/motion";
 
 export const dynamic = 'force-dynamic';
@@ -87,7 +86,7 @@ export default async function Home({ searchParams }: { searchParams: { tag?: str
                           {article.Status === 'done' ? 'Готово' : 'В обработке'}
                         </span>
                         <CardDescription className="m-0 text-slate-500">
-                          {format(new Date(article.CreatedAt), "d MMMM yyyy, HH:mm", { locale: ru })}
+                          <FormattedDate date={article.CreatedAt} />
                         </CardDescription>
                       </div>
                     </div>

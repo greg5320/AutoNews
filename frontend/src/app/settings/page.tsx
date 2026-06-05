@@ -9,8 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Trash2, Plus, Clock, Settings2, Database } from "lucide-react";
 import { toast } from "sonner";
-import { format } from "date-fns";
-import { ru } from "date-fns/locale";
+import { FormattedDate } from "@/components/FormattedDate";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
@@ -217,7 +216,7 @@ export default function SettingsPage() {
                         <TableCell className="font-medium">{feed.name}</TableCell>
                         <TableCell className="text-muted-foreground text-xs font-mono max-w-[300px] truncate">{feed.url}</TableCell>
                         <TableCell className="text-muted-foreground text-sm">
-                          {format(new Date(feed.created_at), "d MMM yyyy, HH:mm", { locale: ru })}
+                          <FormattedDate date={feed.created_at} pattern="d MMM yyyy, HH:mm" />
                         </TableCell>
                         <TableCell className="text-right">
                           <Button 
