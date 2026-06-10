@@ -114,12 +114,21 @@ func (r *Router) updateSettings(c *gin.Context) {
 }
 
 func (r *Router) ensureUserFeeds(userID string) error {
-	count, err := r.feedRepo.GetUserFeedCount(userID)
+	// Проверяем, инициализирован ли уже пользователь (есть ли запись в user_metadata)
+	var exists bool
+	err := r.repo.DB().Get(&exists, "SELECT EXISTS(SELECT 1 FROM user_metadata WHERE user_id = $1)", userID)
 	if err != nil {
 		return err
 	}
-	if count > 0 {
+	if exists {
+		// Пользователь уже заходил раньше, поэтому даже если у него 0 подписок — это его выбор. Не навязываем дефолтные фиды.
 		return nil
+	}
+
+	// Регистрируем нового пользователя в метаданных
+	_, err = r.repo.DB().Exec("INSERT INTO user_metadata (user_id) VALUES ($1) ON CONFLICT DO NOTHING", userID)
+	if err != nil {
+		return err
 	}
 
 	// 1. Ensure Hacker News RSS exists and subscribe

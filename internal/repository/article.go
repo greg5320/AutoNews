@@ -151,3 +151,7 @@ func (r *ArticleRepository) UpdateStatus(id int, status string) error {
 	_, err := r.db.Exec("UPDATE articles SET status = $1 WHERE id = $2", status, id)
 	return err
 }
+
+func (r *ArticleRepository) DB() *sqlx.DB {
+	return r.db
+}

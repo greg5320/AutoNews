@@ -63,6 +63,11 @@ func EnsureSchema(db *sqlx.DB) error {
 		PRIMARY KEY (user_id, article_id)
 	);
 
+	CREATE TABLE IF NOT EXISTS user_metadata (
+		user_id VARCHAR(255) PRIMARY KEY,
+		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	);
+
 	INSERT INTO settings (key, value) VALUES ('cron_interval', '10') ON CONFLICT DO NOTHING;
 	INSERT INTO rss_feeds (url, name) VALUES ('https://hnrss.org/frontpage', 'Hacker News') ON CONFLICT DO NOTHING;
 	`
