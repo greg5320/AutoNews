@@ -62,6 +62,15 @@ export async function fetchArticles(tag?: string, feedId?: string, userId?: stri
   return res.json();
 }
 
+export async function fetchArticle(id: number, userId?: string): Promise<Article> {
+  const res = await fetch(`${API_BASE}/articles/${id}`, {
+    cache: "no-store",
+    headers: getHeaders(userId),
+  });
+  if (!res.ok) throw new Error("Failed to load article");
+  return res.json();
+}
+
 export async function createArticle(title: string, content: string, userId?: string): Promise<void> {
   const res = await fetch(`${API_BASE}/articles`, {
     method: "POST",

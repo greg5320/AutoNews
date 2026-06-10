@@ -1,14 +1,12 @@
 import { fetchArticles, fetchFeeds, Article, Feed } from "@/lib/api";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Filters } from "@/components/Filters";
-import { DeleteAllButton, DeleteArticleButton } from "@/components/DeleteButtons";
+import { DeleteAllButton } from "@/components/DeleteButtons";
 import { RefreshButton } from "@/components/RefreshButton";
-import { FormattedDate } from "@/components/FormattedDate";
 import { ArticleList, ArticleCard, articleListVariants, articleCardVariants } from "@/components/ui/motion";
 import { cookies, headers } from "next/headers";
+import { LazyArticleCard } from "@/components/LazyArticleCard";
 
 export const dynamic = 'force-dynamic';
 
@@ -42,7 +40,7 @@ export default async function Home({ searchParams }: { searchParams: { tag?: str
           <DeleteAllButton />
           <Link href="/settings">
             <Button variant="outline" className="shadow-sm hover:shadow transition-shadow bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800">
-              Настройки RSS
+              Настройки ленты
             </Button>
           </Link>
         </div>
@@ -64,66 +62,11 @@ export default async function Home({ searchParams }: { searchParams: { tag?: str
           {articles.map((article) => {
             const feed = feeds.find(f => f.id === article.FeedID);
             return (
-            <ArticleCard key={article.ID} variants={articleCardVariants}>
-              <Card className="flex flex-col h-full hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-                <CardHeader>
-                  <div className="flex justify-between items-start gap-4">
-                    <div className="flex-1">
-                      {feed && (
-                        <div className="mb-2 inline-flex items-center text-[10px] uppercase tracking-wider font-bold text-slate-500 bg-slate-100 dark:bg-slate-900 px-2 py-0.5 rounded-sm">
-                          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
-                          {feed.name}
-                        </div>
-                      )}
-                      <CardTitle className="text-xl line-clamp-2 mb-2 font-semibold">
-                        {article.OriginalURL ? (
-                          <a href={article.OriginalURL} target="_blank" rel="noreferrer" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                            {article.Title}
-                          </a>
-                        ) : (
-                          article.Title
-                        )}
-                      </CardTitle>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-xs px-2 py-1 rounded-md whitespace-nowrap font-medium ${
-                          article.Status === 'done' ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300'
-                        }`}>
-                          {article.Status === 'done' ? 'Готово' : 'В обработке'}
-                        </span>
-                        <CardDescription className="m-0 text-slate-500">
-                          <FormattedDate date={article.CreatedAt} />
-                        </CardDescription>
-                      </div>
-                    </div>
-                    <DeleteArticleButton id={article.ID} />
-                  </div>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  {article.Status === 'done' && article.AISummary ? (
-                    <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg border border-slate-100 dark:border-slate-800 text-sm text-slate-700 dark:text-slate-300 shadow-inner">
-                      <span className="font-bold block mb-2 text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[10px]">Самое важное:</span>
-                      <div className="leading-relaxed">{article.AISummary}</div>
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground italic">
-                      Ожидаем ответа от нейросети... Попробуйте обновить страницу чуть позже.
-                    </p>
-                  )}
-                </CardContent>
-                {article.Tags && article.Tags.length > 0 && (
-                  <CardFooter className="pt-0 flex flex-wrap gap-2 bg-transparent border-t-0">
-                    {article.Tags.map((tag, idx) => (
-                      <Badge key={idx} variant="secondary" className="hover:bg-secondary/80 transition-colors">
-                        <Link href={`/?tag=${encodeURIComponent(tag)}`}>
-                          {tag}
-                        </Link>
-                      </Badge>
-                    ))}
-                  </CardFooter>
-                )}
-              </Card>
-            </ArticleCard>
-          )})}
+              <ArticleCard key={article.ID} variants={articleCardVariants}>
+                <LazyArticleCard initialArticle={article} feed={feed} />
+              </ArticleCard>
+            )
+          })}
         </ArticleList>
       )}
     </main>

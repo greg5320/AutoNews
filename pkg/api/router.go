@@ -122,23 +122,46 @@ func (r *Router) ensureUserFeeds(userID string) error {
 		return nil
 	}
 
-	defaultFeed, err := r.feedRepo.GetByURL("https://hnrss.org/frontpage")
-	var feedID int
-	if err != nil { // Not found or error
-		feedID, err = r.feedRepo.Create("Hacker News", "https://hnrss.org/frontpage")
-		if err != nil {
-			return err
-		}
-		
-		feedObj, fetchErr := r.feedRepo.GetByID(feedID)
-		if fetchErr == nil && feedObj != nil {
-			go r.scheduler.FetchAndProcess(*feedObj)
+	// 1. Ensure Hacker News RSS exists and subscribe
+	hnFeed, err := r.feedRepo.GetByURL("https://hnrss.org/frontpage")
+	var hnFeedID int
+	if err != nil {
+		hnFeedID, err = r.feedRepo.Create("Hacker News", "https://hnrss.org/frontpage")
+		if err == nil {
+			feedObj, fetchErr := r.feedRepo.GetByID(hnFeedID)
+			if fetchErr == nil && feedObj != nil {
+				go r.scheduler.FetchAndProcess(*feedObj)
+			}
 		}
 	} else {
-		feedID = defaultFeed.ID
+		hnFeedID = hnFeed.ID
+	}
+	if hnFeedID > 0 {
+		_ = r.feedRepo.Subscribe(userID, hnFeedID)
 	}
 
-	return r.feedRepo.Subscribe(userID, feedID)
+	// 2. Ensure Pavel Durov Telegram channel exists and subscribe
+	durovFeed, err := r.feedRepo.GetByURL("https://t.me/s/durov")
+	var durovFeedID int
+	if err != nil {
+		durovFeed, err = r.feedRepo.GetByURL("https://t.me/durov")
+	}
+	if err != nil {
+		durovFeedID, err = r.feedRepo.Create("Павел Дуров", "https://t.me/s/durov")
+		if err == nil {
+			feedObj, fetchErr := r.feedRepo.GetByID(durovFeedID)
+			if fetchErr == nil && feedObj != nil {
+				go r.scheduler.FetchAndProcess(*feedObj)
+			}
+		}
+	} else {
+		durovFeedID = durovFeed.ID
+	}
+	if durovFeedID > 0 {
+		_ = r.feedRepo.Subscribe(userID, durovFeedID)
+	}
+
+	return nil
 }
 
 func (r *Router) deleteAllArticles(c *gin.Context) {
@@ -249,6 +272,20 @@ func (r *Router) getArticle(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Article not found"})
 		return
 	}
+
+	// On-demand/lazy AI analysis!
+	if article.Status == "new" {
+		analyzed, err := r.service.ProcessArticleSync(*article)
+		if err != nil {
+			log.Printf("Error analyzing article %d on demand: %v", id, err)
+			// Return unanalyzed article instead of error
+			c.JSON(http.StatusOK, article)
+			return
+		}
+		c.JSON(http.StatusOK, analyzed)
+		return
+	}
+
 	c.JSON(http.StatusOK, article)
 }
 

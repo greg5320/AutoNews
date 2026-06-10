@@ -77,3 +77,22 @@ func (s *ArticleService) ProcessArticles(articles []models.Article) {
 
 	log.Println("Все воркеры закончили работу. Обработка завершена.")
 }
+
+func (s *ArticleService) ProcessArticleSync(article models.Article) (*models.Article, error) {
+	log.Printf("[ON-DEMAND] Starting AI analysis for article ID=%d (%s)\n", article.ID, article.Title)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	analysis, err := s.llm.AnalyzeText(ctx, article.Content)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.repo.UpdateAIAnalysis(article.ID, analysis.Summary, analysis.Tags)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.repo.GetByID(article.ID)
+}

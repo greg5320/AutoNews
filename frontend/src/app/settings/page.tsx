@@ -115,7 +115,7 @@ export default function SettingsPage() {
         <div className="bg-primary/10 p-2 rounded-xl">
           <Settings2 className="w-8 h-8 text-primary" />
         </div>
-        <h1 className="text-3xl font-bold tracking-tight">Настройки RSS</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Настройки ленты</h1>
       </motion.div>
 
       <motion.div 
@@ -162,7 +162,7 @@ export default function SettingsPage() {
         <motion.div variants={itemVariants} className="space-y-6">
           <div className="flex items-center gap-2">
             <Database className="w-5 h-5 text-muted-foreground" />
-            <h2 className="text-2xl font-semibold">Источники (Feeds)</h2>
+            <h2 className="text-2xl font-semibold">Источники</h2>
           </div>
           
           <Card className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-sm border-dashed border-slate-300 dark:border-slate-700 shadow-none">

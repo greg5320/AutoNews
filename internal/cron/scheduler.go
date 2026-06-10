@@ -91,11 +91,7 @@ func (s *Scheduler) UpdateInterval(minutes string) error {
 func (s *Scheduler) runParsing() {
 	log.Println("[CRON] Starting RSS parsing...")
 	
-	unprocessed, err := s.repo.GetUnprocessed()
-	if err == nil && len(unprocessed) > 0 {
-		log.Printf("[CRON] Found %d stuck articles, sending to Worker Pool\n", len(unprocessed))
-		go s.service.ProcessArticles(unprocessed)
-	}
+	// Disabled automatic background processing to save tokens; articles are processed on-demand.
 
 	feeds, err := s.feedRepo.GetAll()
 	if err != nil {
@@ -150,7 +146,6 @@ func (s *Scheduler) FetchAndProcess(feed models.Feed) {
 	}
 
 	if len(newArticles) > 0 {
-		log.Printf("[CRON] Sending %d articles to Worker Pool\n", len(newArticles))
-		go s.service.ProcessArticles(newArticles)
+		log.Printf("[CRON] Saved %d new articles. They will be analyzed on-demand.\n", len(newArticles))
 	}
 }
