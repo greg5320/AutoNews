@@ -17,6 +17,7 @@ import (
 type Scheduler struct {
 	c            *cronlib.Cron
 	parser       *rss.Parser
+	tgParser     *rss.TelegramParser
 	repo         *repository.ArticleRepository
 	feedRepo     *repository.FeedRepository
 	settingsRepo *repository.SettingsRepository
@@ -29,6 +30,7 @@ func NewScheduler(repo *repository.ArticleRepository, feedRepo *repository.FeedR
 	return &Scheduler{
 		c:            cronlib.New(),
 		parser:       rss.NewParser(),
+		tgParser:     rss.NewTelegramParser(),
 		repo:         repo,
 		feedRepo:     feedRepo,
 		settingsRepo: settingsRepo,
@@ -110,7 +112,15 @@ func (s *Scheduler) FetchAndProcess(feed models.Feed) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	articles, err := s.parser.FetchArticles(ctx, feed.URL)
+	var articles []models.Article
+	var err error
+
+	if rss.IsTelegramURL(feed.URL) {
+		articles, err = s.tgParser.FetchArticles(ctx, feed.URL)
+	} else {
+		articles, err = s.parser.FetchArticles(ctx, feed.URL)
+	}
+
 	if err != nil {
 		log.Printf("[CRON] Parse error %s: %v\n", feed.URL, err)
 		return

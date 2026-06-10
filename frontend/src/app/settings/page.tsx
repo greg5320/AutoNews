@@ -169,13 +169,13 @@ export default function SettingsPage() {
             <CardContent className="pt-6">
               <form onSubmit={handleAdd} className="flex flex-col sm:flex-row gap-4">
                 <Input 
-                  placeholder="Название (напр. Hacker News)" 
+                  placeholder="Название (напр. Hacker News или Дуров)" 
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   className="sm:w-1/3 bg-background/50"
                 />
                 <Input 
-                  placeholder="URL (напр. https://hnrss.org/frontpage)" 
+                  placeholder="URL ленты или Telegram-канала (напр. @durov)" 
                   value={newUrl}
                   onChange={(e) => setNewUrl(e.target.value)}
                   className="flex-1 bg-background/50"

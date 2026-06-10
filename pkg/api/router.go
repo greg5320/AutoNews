@@ -12,6 +12,7 @@ import (
 	"github.com/greg5320/AutoNews/internal/metrics"
 	"github.com/greg5320/AutoNews/internal/models"
 	"github.com/greg5320/AutoNews/internal/repository"
+	"github.com/greg5320/AutoNews/internal/rss"
 	"github.com/greg5320/AutoNews/internal/service"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -290,6 +291,7 @@ func (r *Router) createFeed(c *gin.Context) {
 	}
 
 	// Try to look up existing global feed URL
+	input.URL = rss.NormalizeTelegramURL(input.URL)
 	feed, err := r.feedRepo.GetByURL(input.URL)
 	var feedID int
 	if err != nil {
