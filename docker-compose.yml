@@ -7,8 +7,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: autonews
-    ports:
-      - "5432:5432"
+    # Порт 5432 убран из публичного доступа. Доступ к БД есть только внутри безопасной сети Docker.
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -19,8 +18,7 @@ services:
 
   app:
     build: .
-    ports:
-      - "8002:8002"
+    # Порт 8002 убран из публичного доступа. Доступ только через прокси Nginx.
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
     depends_on:
@@ -31,8 +29,7 @@ services:
     build: 
       context: ./frontend
       dockerfile: Dockerfile
-    ports:
-      - "2000:2000"
+    # Порт 2000 убран из публичного доступа. Доступ только через прокси Nginx.
     environment:
       - PORT=2000
     depends_on:
@@ -41,6 +38,7 @@ services:
   nginx:
     build:
       context: ./nginx
+    # Единственные порты, открытые во внешний мир. Nginx фильтрует и распределяет весь трафик.
     ports:
       - "80:80"
       - "443:443"
@@ -58,8 +56,7 @@ services:
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
-    ports:
-      - "9090:9090"
+    # Закрываем порты prometheus от внешнего мира, они нужны только внутри или для Grafana
     depends_on:
       - app
 
@@ -67,7 +64,7 @@ services:
     image: grafana/grafana:latest
     container_name: autonews_grafana
     ports:
-      - "3001:3000"
+      - "3001:3000" # Grafana остается доступной для просмотра дашбордов админом
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     volumes:

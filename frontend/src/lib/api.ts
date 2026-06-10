@@ -1,7 +1,7 @@
 // src/lib/api.ts
 
 const isServer = typeof window === 'undefined';
-const API_BASE = isServer ? "http://app:8002" : "http://localhost:8002";
+const API_BASE = isServer ? "http://app:8002" : "/api";
 
 export interface Article {
   ID: number;
