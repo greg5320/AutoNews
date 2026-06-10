@@ -34,7 +34,16 @@ export function getUserId(): string {
   if (typeof window === 'undefined') {
     return "";
   }
-  return getCookie("user_id") || "";
+  let id = getCookie("user_id");
+  if (!id) {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      id = crypto.randomUUID();
+    } else {
+      id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    }
+    document.cookie = `user_id=${id}; max-age=${60 * 60 * 24 * 365 * 10}; path=/; SameSite=Lax`;
+  }
+  return id;
 }
 
 function getHeaders(userId?: string): Record<string, string> {
