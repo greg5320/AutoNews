@@ -22,7 +22,6 @@ services:
     ports:
       - "8002:8002"
     environment:
-      # TODO: подсунуть нормальный ключ для Gemini
       - GEMINI_API_KEY=${GEMINI_API_KEY}
     depends_on:
       postgres:
@@ -38,6 +37,20 @@ services:
       - PORT=2000
     depends_on:
       - app
+
+  nginx:
+    build:
+      context: ./nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - nginx_ssl:/etc/nginx/ssl
+      - certbot_etc:/etc/letsencrypt
+      - certbot_var:/var/lib/letsencrypt
+      - webroot_path:/var/www/certbot
+    depends_on:
+      - frontend
 
   prometheus:
     image: prom/prometheus:latest
@@ -66,3 +79,7 @@ volumes:
   postgres_data:
   prometheus_data:
   grafana_data:
+  nginx_ssl:
+  certbot_etc:
+  certbot_var:
+  webroot_path:
