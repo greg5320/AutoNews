@@ -8,15 +8,20 @@ import { DeleteAllButton, DeleteArticleButton } from "@/components/DeleteButtons
 import { RefreshButton } from "@/components/RefreshButton";
 import { FormattedDate } from "@/components/FormattedDate";
 import { ArticleList, ArticleCard, articleListVariants, articleCardVariants } from "@/components/ui/motion";
+import { cookies, headers } from "next/headers";
 
 export const dynamic = 'force-dynamic';
 
 export default async function Home({ searchParams }: { searchParams: { tag?: string, feed_id?: string } }) {
+  const cookieStore = cookies();
+  const headerStore = headers();
+  const userId = cookieStore.get("user_id")?.value || headerStore.get("x-user-id") || "";
+
   let articles: Article[] = [];
   let feeds: Feed[] = [];
   try {
-    articles = await fetchArticles(searchParams.tag, searchParams.feed_id);
-    feeds = await fetchFeeds();
+    articles = await fetchArticles(searchParams.tag, searchParams.feed_id, userId);
+    feeds = await fetchFeeds(userId);
   } catch (error) {
     console.error("Ошибка при загрузке:", error);
   }

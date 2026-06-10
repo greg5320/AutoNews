@@ -102,11 +102,11 @@ func (s *Scheduler) runParsing() {
 	}
 
 	for _, feed := range feeds {
-		s.fetchAndProcess(feed)
+		s.FetchAndProcess(feed)
 	}
 }
 
-func (s *Scheduler) fetchAndProcess(feed models.Feed) {
+func (s *Scheduler) FetchAndProcess(feed models.Feed) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 

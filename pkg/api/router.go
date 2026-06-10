@@ -35,7 +35,10 @@ func NewRouter(repo *repository.ArticleRepository, feedRepo *repository.FeedRepo
 		scheduler:    scheduler,
 	}
 
-	r.engine.Use(cors.Default())
+	config := cors.DefaultConfig()
+	config.AllowAllOrigins = true
+	config.AddAllowHeaders("X-User-ID")
+	r.engine.Use(cors.New(config))
 	r.engine.Use(prometheusMiddleware())
 	r.setupRoutes()
 	return r
@@ -109,29 +112,79 @@ func (r *Router) updateSettings(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Settings updated"})
 }
 
+func (r *Router) ensureUserFeeds(userID string) error {
+	count, err := r.feedRepo.GetUserFeedCount(userID)
+	if err != nil {
+		return err
+	}
+	if count > 0 {
+		return nil
+	}
+
+	defaultFeed, err := r.feedRepo.GetByURL("https://hnrss.org/frontpage")
+	var feedID int
+	if err != nil { // Not found or error
+		feedID, err = r.feedRepo.Create("Hacker News", "https://hnrss.org/frontpage")
+		if err != nil {
+			return err
+		}
+		
+		feedObj, fetchErr := r.feedRepo.GetByID(feedID)
+		if fetchErr == nil && feedObj != nil {
+			go r.scheduler.FetchAndProcess(*feedObj)
+		}
+	} else {
+		feedID = defaultFeed.ID
+	}
+
+	return r.feedRepo.Subscribe(userID, feedID)
+}
+
 func (r *Router) deleteAllArticles(c *gin.Context) {
-	if err := r.repo.DeleteAll(); err != nil {
+	userID := c.GetHeader("X-User-ID")
+	if userID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing X-User-ID header"})
+		return
+	}
+
+	if err := r.repo.DeleteAllForUser(userID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete all articles"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "All articles deleted"})
+	c.JSON(http.StatusOK, gin.H{"message": "All articles deleted for user"})
 }
 
 func (r *Router) deleteArticle(c *gin.Context) {
+	userID := c.GetHeader("X-User-ID")
+	if userID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing X-User-ID header"})
+		return
+	}
+
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return
 	}
 
-	if err := r.repo.Delete(id); err != nil {
+	if err := r.repo.DeleteForUser(userID, id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete article"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Article deleted"})
+	c.JSON(http.StatusOK, gin.H{"message": "Article deleted for user"})
 }
 
 func (r *Router) getArticles(c *gin.Context) {
+	userID := c.GetHeader("X-User-ID")
+	if userID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing X-User-ID header"})
+		return
+	}
+
+	if err := r.ensureUserFeeds(userID); err != nil {
+		log.Printf("Error ensuring user feeds: %v", err)
+	}
+
 	tag := c.Query("tag")
 	feedIDStr := c.Query("feed_id")
 	
@@ -142,7 +195,7 @@ func (r *Router) getArticles(c *gin.Context) {
 		}
 	}
 
-	articles, err := r.repo.GetAll(tag, feedID)
+	articles, err := r.repo.GetUserArticles(userID, tag, feedID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load articles"})
 		return
@@ -199,7 +252,17 @@ func (r *Router) getArticle(c *gin.Context) {
 }
 
 func (r *Router) getFeeds(c *gin.Context) {
-	feeds, err := r.feedRepo.GetAll()
+	userID := c.GetHeader("X-User-ID")
+	if userID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing X-User-ID header"})
+		return
+	}
+
+	if err := r.ensureUserFeeds(userID); err != nil {
+		log.Printf("Error ensuring user feeds: %v", err)
+	}
+
+	feeds, err := r.feedRepo.GetUserFeeds(userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load feeds"})
 		return
@@ -211,6 +274,12 @@ func (r *Router) getFeeds(c *gin.Context) {
 }
 
 func (r *Router) createFeed(c *gin.Context) {
+	userID := c.GetHeader("X-User-ID")
+	if userID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing X-User-ID header"})
+		return
+	}
+
 	var input struct {
 		Name string `json:"name" binding:"required"`
 		URL  string `json:"url" binding:"required"`
@@ -220,22 +289,47 @@ func (r *Router) createFeed(c *gin.Context) {
 		return
 	}
 
-	id, err := r.feedRepo.Create(input.Name, input.URL)
+	// Try to look up existing global feed URL
+	feed, err := r.feedRepo.GetByURL(input.URL)
+	var feedID int
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add feed"})
+		feedID, err = r.feedRepo.Create(input.Name, input.URL)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add feed"})
+			return
+		}
+	} else {
+		feedID = feed.ID
+	}
+
+	if err := r.feedRepo.Subscribe(userID, feedID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to subscribe to feed"})
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"id": id, "name": input.Name, "url": input.URL})
+
+	// Fetch articles for this feed in the background immediately
+	feedObj, fetchErr := r.feedRepo.GetByID(feedID)
+	if fetchErr == nil && feedObj != nil {
+		go r.scheduler.FetchAndProcess(*feedObj)
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"id": feedID, "name": input.Name, "url": input.URL})
 }
 
 func (r *Router) deleteFeed(c *gin.Context) {
+	userID := c.GetHeader("X-User-ID")
+	if userID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing X-User-ID header"})
+		return
+	}
+
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return
 	}
 
-	if err := r.feedRepo.Delete(id); err != nil {
+	if err := r.feedRepo.Unsubscribe(userID, id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete feed"})
 		return
 	}

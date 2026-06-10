@@ -87,3 +87,49 @@ func (r *ArticleRepository) DeleteAll() error {
 	_, err := r.db.Exec("DELETE FROM articles")
 	return err
 }
+
+func (r *ArticleRepository) GetUserArticles(userID string, tag string, feedID int) ([]models.Article, error) {
+	var articles []models.Article
+	
+	query := `SELECT a.* FROM articles a 
+	          JOIN user_feeds uf ON a.feed_id = uf.feed_id 
+	          WHERE uf.user_id = $1 
+	            AND a.id NOT IN (SELECT article_id FROM user_deleted_articles WHERE user_id = $1)`
+	
+	var args []interface{}
+	args = append(args, userID)
+	counter := 2
+
+	if feedID > 0 {
+		query += fmt.Sprintf(` AND a.feed_id = $%d`, counter)
+		args = append(args, feedID)
+		counter++
+	}
+	
+	if tag != "" {
+		query += fmt.Sprintf(` AND $%d = ANY(a.tags)`, counter)
+		args = append(args, tag)
+		counter++
+	}
+	
+	query += ` ORDER BY a.created_at DESC`
+	
+	err := r.db.Select(&articles, query, args...)
+	return articles, err
+}
+
+func (r *ArticleRepository) DeleteForUser(userID string, articleID int) error {
+	_, err := r.db.Exec(`INSERT INTO user_deleted_articles (user_id, article_id) 
+	                      VALUES ($1, $2) ON CONFLICT DO NOTHING`, userID, articleID)
+	return err
+}
+
+func (r *ArticleRepository) DeleteAllForUser(userID string) error {
+	query := `INSERT INTO user_deleted_articles (user_id, article_id)
+	          SELECT $1, a.id FROM articles a
+	          JOIN user_feeds uf ON a.feed_id = uf.feed_id
+	          WHERE uf.user_id = $1
+	          ON CONFLICT DO NOTHING`
+	_, err := r.db.Exec(query, userID)
+	return err
+}
