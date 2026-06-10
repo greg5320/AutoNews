@@ -11,8 +11,39 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "AutoNews - AI Article Summarizer",
-  description: "Агрегатор статей с автоматической выжимкой через LLM",
+  title: {
+    default: "AutoNews - Агрегатор новостей с ИИ-выжимкой",
+    template: "%s | AutoNews"
+  },
+  description: "Умный агрегатор статей и Telegram-каналов с автоматической краткой выжимкой на базе искусственного интеллекта. Читайте самое важное без воды.",
+  keywords: ["новости", "агрегатор новостей", "искусственный интеллект", "выжимка новостей", "краткое содержание", "Telegram", "RSS", "умная лента"],
+  authors: [{ name: "greg5320" }],
+  creator: "greg5320",
+  publisher: "AutoNews",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  openGraph: {
+    type: "website",
+    locale: "ru_RU",
+    url: "https://autonews.ru",
+    title: "AutoNews - Агрегатор новостей с ИИ-выжимкой",
+    description: "Умный агрегатор статей и Telegram-каналов с автоматической краткой выжимкой на базе искусственного интеллекта.",
+    siteName: "AutoNews",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AutoNews - Агрегатор новостей с ИИ-выжимкой",
+    description: "Умный агрегатор статей и Telegram-каналов с автоматической краткой выжимкой на базе искусственного интеллекта.",
+  },
 };
 
 export default function RootLayout({
