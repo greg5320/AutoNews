@@ -133,3 +133,21 @@ func (r *ArticleRepository) DeleteAllForUser(userID string) error {
 	_, err := r.db.Exec(query, userID)
 	return err
 }
+
+func (r *ArticleRepository) SetStatusProcessing(id int) (bool, error) {
+	query := `UPDATE articles SET status = 'processing' WHERE id = $1 AND status = 'new'`
+	res, err := r.db.Exec(query, id)
+	if err != nil {
+		return false, err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+	return rows > 0, nil
+}
+
+func (r *ArticleRepository) UpdateStatus(id int, status string) error {
+	_, err := r.db.Exec("UPDATE articles SET status = $1 WHERE id = $2", status, id)
+	return err
+}

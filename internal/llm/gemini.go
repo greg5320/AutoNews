@@ -41,8 +41,15 @@ func NewGeminiClient(apiKey string) *GeminiClient {
 func (g *GeminiClient) AnalyzeText(ctx context.Context, text string) (*AIAnalysisResult, error) {
 	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=%s", g.apiKey)
 
+	// Оптимизация входных токенов (Prompt): обрезаем текст до 3000 символов.
+	// Этого более чем достаточно для сути любой новости, но убережет от длинных "простыней" текста.
+	if len(text) > 3000 {
+		text = text[:3000] + "..."
+	}
+
 	allowedTagsStr := strings.Join(AllowedTags, ", ")
-	prompt := fmt.Sprintf(`Проанализируй новость. Сделай краткую выжимку (summary) и выбери от 3 до 5 релевантных тегов (tags).
+	// Оптимизация выходных токенов (Output): жестко требуем ультра-короткую выжимку (до 250 символов, 2-3 предложения) и меньше тегов.
+	prompt := fmt.Sprintf(`Проанализируй новость. Сделай ультра-короткую и емкую выжимку (summary) СТРОГО в пределах 2-3 предложений (до 250 символов), выделив только самую суть. Выбери от 1 до 3 наиболее релевантных тегов (tags).
 ВНИМАНИЕ: Теги можно выбирать СТРОГО и ТОЛЬКО из этого списка: [%s].
 Верни ответ СТРОГО в формате JSON, без маркдауна и лишних символов:
 {"summary": "текст", "tags": ["тег1", "тег2"]}

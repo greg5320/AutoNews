@@ -273,17 +273,51 @@ func (r *Router) getArticle(c *gin.Context) {
 		return
 	}
 
+	// Если статья уже обрабатывается в другом запросе, подождем ее готовности
+	if article.Status == "processing" {
+		for i := 0; i < 20; i++ { // максимум 10 секунд (20 * 500ms)
+			time.Sleep(500 * time.Millisecond)
+			updated, err := r.repo.GetByID(id)
+			if err == nil && updated.Status == "done" {
+				c.JSON(http.StatusOK, updated)
+				return
+			}
+		}
+		c.JSON(http.StatusOK, article)
+		return
+	}
+
 	// On-demand/lazy AI analysis!
 	if article.Status == "new" {
-		analyzed, err := r.service.ProcessArticleSync(*article)
+		// Атомарно пытаемся занять обработку
+		acquired, err := r.repo.SetStatusProcessing(id)
 		if err != nil {
-			log.Printf("Error analyzing article %d on demand: %v", id, err)
-			// Return unanalyzed article instead of error
-			c.JSON(http.StatusOK, article)
-			return
+			log.Printf("Error setting status processing for article %d: %v", id, err)
 		}
-		c.JSON(http.StatusOK, analyzed)
-		return
+
+		if acquired {
+			// Наш поток занял обработку статьи
+			analyzed, err := r.service.ProcessArticleSync(*article)
+			if err != nil {
+				log.Printf("Error analyzing article %d on demand: %v", id, err)
+				// В случае ошибки возвращаем статус 'new', чтобы можно было повторить попытку позже
+				_ = r.repo.UpdateStatus(id, "new")
+				c.JSON(http.StatusOK, article)
+				return
+			}
+			c.JSON(http.StatusOK, analyzed)
+			return
+		} else {
+			// Другой поток успел занять обработку на доли секунды раньше. Подождем завершения.
+			for i := 0; i < 20; i++ {
+				time.Sleep(500 * time.Millisecond)
+				updated, err := r.repo.GetByID(id)
+				if err == nil && updated.Status == "done" {
+					c.JSON(http.StatusOK, updated)
+					return
+				}
+			}
+		}
 	}
 
 	c.JSON(http.StatusOK, article)
