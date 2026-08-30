@@ -175,7 +175,7 @@ export default function SettingsPage() {
                   className="sm:w-1/3 bg-background/50"
                 />
                 <Input 
-                  placeholder="URL ленты или Telegram-канала (напр. @durov)" 
+                  placeholder="URL ленты или Telegram-канала (напр. @d_code)" 
                   value={newUrl}
                   onChange={(e) => setNewUrl(e.target.value)}
                   className="flex-1 bg-background/50"
