@@ -20,6 +20,11 @@ export const metadata: Metadata = {
   authors: [{ name: "greg5320" }],
   creator: "greg5320",
   publisher: "AutoNews",
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
   robots: {
     index: true,
     follow: true,
@@ -66,7 +71,6 @@ export default function RootLayout({
               filter: 'blur(80px)',
             }}
           />
-          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay" />
         </div>
         <div className="relative z-10">
           {children}
