@@ -169,7 +169,7 @@ export default function SettingsPage() {
             <CardContent className="p-4 sm:p-6">
               <form onSubmit={handleAdd} className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <Input 
-                  placeholder="Название (напр. Hacker News или Дуров)" 
+                  placeholder="Название (напр. Hacker News или Код.ру)" 
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   className="w-full sm:w-1/3 bg-background/50 text-xs sm:text-sm h-9"

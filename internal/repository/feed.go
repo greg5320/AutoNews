@@ -42,6 +42,11 @@ func (r *FeedRepository) Delete(id int) error {
 	return err
 }
 
+func (r *FeedRepository) UpdateName(id int, name string) error {
+	_, err := r.db.Exec("UPDATE rss_feeds SET name = $1 WHERE id = $2", name, id)
+	return err
+}
+
 func (r *FeedRepository) Subscribe(userID string, feedID int) error {
 	_, err := r.db.Exec("INSERT INTO user_feeds (user_id, feed_id) VALUES ($1, $2) ON CONFLICT DO NOTHING", userID, feedID)
 	return err

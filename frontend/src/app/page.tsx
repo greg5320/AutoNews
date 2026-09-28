@@ -4,9 +4,8 @@ import Link from "next/link";
 import { Filters } from "@/components/Filters";
 import { DeleteAllButton } from "@/components/DeleteButtons";
 import { RefreshButton } from "@/components/RefreshButton";
-import { ArticleList, ArticleCard, articleListVariants, articleCardVariants } from "@/components/ui/motion";
 import { cookies, headers } from "next/headers";
-import { LazyArticleCard } from "@/components/LazyArticleCard";
+import { ArticleFeed } from "@/components/ArticleFeed";
 
 export const dynamic = 'force-dynamic';
 
@@ -54,21 +53,7 @@ export default async function Home({ searchParams }: { searchParams: { tag?: str
           Ничего не найдено. Попробуйте сбросить фильтры.
         </div>
       ) : (
-        <ArticleList 
-          variants={articleListVariants}
-          initial="hidden"
-          animate="show"
-          className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 w-full min-w-0"
-        >
-          {articles.map((article) => {
-            const feed = feeds.find(f => f.id === article.FeedID);
-            return (
-              <ArticleCard key={article.ID} variants={articleCardVariants} className="w-full min-w-0">
-                <LazyArticleCard initialArticle={article} feed={feed} />
-              </ArticleCard>
-            )
-          })}
-        </ArticleList>
+        <ArticleFeed articles={articles} feeds={feeds} />
       )}
     </main>
   );

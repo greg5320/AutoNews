@@ -149,14 +149,14 @@ func (r *Router) ensureUserFeeds(userID string) error {
 		_ = r.feedRepo.Subscribe(userID, hnFeedID)
 	}
 
-	// 2. Ensure Pavel Durov Telegram channel exists and subscribe
+	// 2. Ensure Code.ru Telegram channel exists and subscribe
 	durovFeed, err := r.feedRepo.GetByURL("https://t.me/s/d_code")
 	var durovFeedID int
 	if err != nil {
 		durovFeed, err = r.feedRepo.GetByURL("https://t.me/d_code")
 	}
 	if err != nil {
-		durovFeedID, err = r.feedRepo.Create("Код.Ру", "https://t.me/s/d_code")
+		durovFeedID, err = r.feedRepo.Create("Код.ру", "https://t.me/s/d_code")
 		if err == nil {
 			feedObj, fetchErr := r.feedRepo.GetByID(durovFeedID)
 			if fetchErr == nil && feedObj != nil {
@@ -165,6 +165,9 @@ func (r *Router) ensureUserFeeds(userID string) error {
 		}
 	} else {
 		durovFeedID = durovFeed.ID
+		if durovFeed.Name != "Код.ру" {
+			_ = r.feedRepo.UpdateName(durovFeedID, "Код.ру")
+		}
 	}
 	if durovFeedID > 0 {
 		_ = r.feedRepo.Subscribe(userID, durovFeedID)
