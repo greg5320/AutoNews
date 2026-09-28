@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
@@ -9,6 +9,12 @@ const inter = Inter({
   subsets: ["latin", "cyrillic"],
   variable: "--font-sans",
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
 
 export const metadata: Metadata = {
   title: {
@@ -57,8 +63,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru" suppressHydrationWarning>
-      <body className={cn("relative min-h-screen bg-slate-50 dark:bg-slate-950 font-sans antialiased overflow-x-hidden", inter.variable)}>
+    <html lang="ru" className="overflow-x-hidden max-w-full" suppressHydrationWarning>
+      <body className={cn("relative min-h-screen max-w-full bg-slate-50 dark:bg-slate-950 font-sans antialiased overflow-x-hidden", inter.variable)}>
         <div className="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
           <div 
             className="absolute inset-0 opacity-40 dark:opacity-20"

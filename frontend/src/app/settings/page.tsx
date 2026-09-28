@@ -93,14 +93,14 @@ export default function SettingsPage() {
   };
 
   return (
-    <main className="container mx-auto py-10 max-w-4xl px-4 relative z-10">
+    <main className="container mx-auto py-6 sm:py-10 max-w-4xl px-3 sm:px-4 relative z-10 w-full min-w-0">
       <motion.div 
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
-        className="mb-6"
+        className="mb-4 sm:mb-6"
       >
         <Link href="/">
-          <Button variant="ghost" className="pl-0 text-muted-foreground hover:text-foreground group">
+          <Button variant="ghost" className="pl-0 text-muted-foreground hover:text-foreground group text-sm">
             <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
             Назад к списку
           </Button>
@@ -110,39 +110,39 @@ export default function SettingsPage() {
       <motion.div 
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center gap-3 mb-8"
+        className="flex items-center gap-3 mb-6 sm:mb-8"
       >
-        <div className="bg-primary/10 p-2 rounded-xl">
-          <Settings2 className="w-8 h-8 text-primary" />
+        <div className="bg-primary/10 p-2 rounded-xl shrink-0">
+          <Settings2 className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
         </div>
-        <h1 className="text-3xl font-bold tracking-tight">Настройки ленты</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Настройки ленты</h1>
       </motion.div>
 
       <motion.div 
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        className="space-y-8"
+        className="space-y-6 sm:space-y-8"
       >
         {/* Блок настройки расписания */}
         <motion.div variants={itemVariants}>
           <Card className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border-slate-200/60 dark:border-slate-800/60 shadow-sm overflow-hidden">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-4">
-                <div className="bg-primary/10 p-3 rounded-full">
-                  <Clock className="w-6 h-6 text-primary" />
+            <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-4">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="bg-primary/10 p-2.5 sm:p-3 rounded-full shrink-0">
+                  <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                 </div>
                 <div>
-                  <CardTitle className="text-lg">Частота обновления</CardTitle>
-                  <CardDescription>Как часто робот должен проверять ленты на наличие новых статей.</CardDescription>
+                  <CardTitle className="text-base sm:text-lg">Частота обновления</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">Как часто робот должен проверять ленты на наличие новых статей.</CardDescription>
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-end">
+            <CardContent className="p-4 sm:p-6 pt-2 sm:pt-4">
+              <div className="flex items-center justify-start sm:justify-end">
                 <div className="w-full sm:w-[220px]">
                   <Select value={interval} onValueChange={handleIntervalChange} disabled={loading}>
-                    <SelectTrigger className="bg-background/50 border-slate-200 dark:border-slate-800">
+                    <SelectTrigger className="bg-background/50 border-slate-200 dark:border-slate-800 w-full text-xs sm:text-sm h-9">
                       <SelectValue placeholder="Выберите интервал" />
                     </SelectTrigger>
                     <SelectContent>
@@ -159,29 +159,29 @@ export default function SettingsPage() {
           </Card>
         </motion.div>
 
-        <motion.div variants={itemVariants} className="space-y-6">
+        <motion.div variants={itemVariants} className="space-y-4 sm:space-y-6">
           <div className="flex items-center gap-2">
             <Database className="w-5 h-5 text-muted-foreground" />
-            <h2 className="text-2xl font-semibold">Источники</h2>
+            <h2 className="text-xl sm:text-2xl font-semibold">Источники</h2>
           </div>
           
           <Card className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-sm border-dashed border-slate-300 dark:border-slate-700 shadow-none">
-            <CardContent className="pt-6">
-              <form onSubmit={handleAdd} className="flex flex-col sm:flex-row gap-4">
+            <CardContent className="p-4 sm:p-6">
+              <form onSubmit={handleAdd} className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <Input 
                   placeholder="Название (напр. Hacker News или Дуров)" 
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
-                  className="sm:w-1/3 bg-background/50"
+                  className="w-full sm:w-1/3 bg-background/50 text-xs sm:text-sm h-9"
                 />
                 <Input 
-                  placeholder="URL ленты или Telegram-канала (напр. @d_code)" 
+                  placeholder="URL ленты или Telegram (@channel)" 
                   value={newUrl}
                   onChange={(e) => setNewUrl(e.target.value)}
-                  className="flex-1 bg-background/50"
+                  className="w-full flex-1 bg-background/50 text-xs sm:text-sm h-9"
                 />
-                <Button type="submit" disabled={loading} className="shadow-sm">
-                  <Plus className="w-4 h-4 mr-2" /> Добавить
+                <Button type="submit" disabled={loading} className="w-full sm:w-auto shadow-sm text-xs sm:text-sm h-9 shrink-0">
+                  <Plus className="w-4 h-4 mr-1.5 sm:mr-2" /> Добавить
                 </Button>
               </form>
             </CardContent>
@@ -191,17 +191,17 @@ export default function SettingsPage() {
             <Table>
               <TableHeader className="bg-muted/50">
                 <TableRow>
-                  <TableHead className="font-semibold">Название</TableHead>
-                  <TableHead className="font-semibold">URL</TableHead>
-                  <TableHead className="font-semibold">Дата добавления</TableHead>
-                  <TableHead className="w-[100px]"></TableHead>
+                  <TableHead className="font-semibold text-xs sm:text-sm">Название</TableHead>
+                  <TableHead className="font-semibold text-xs sm:text-sm">URL</TableHead>
+                  <TableHead className="font-semibold text-xs sm:text-sm hidden sm:table-cell">Дата добавления</TableHead>
+                  <TableHead className="w-[60px] sm:w-[100px] text-right"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading ? (
-                  <TableRow><TableCell colSpan={4} className="text-center py-8">Загрузка...</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={4} className="text-center py-8 text-xs sm:text-sm">Загрузка...</TableCell></TableRow>
                 ) : feeds.length === 0 ? (
-                  <TableRow><TableCell colSpan={4} className="text-center py-8 text-muted-foreground">Нет добавленных фидов</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={4} className="text-center py-8 text-muted-foreground text-xs sm:text-sm">Нет добавленных фидов</TableCell></TableRow>
                 ) : (
                   <AnimatePresence mode="popLayout">
                     {feeds.map((feed) => (
@@ -213,17 +213,17 @@ export default function SettingsPage() {
                         exit={{ opacity: 0, x: -20 }}
                         className="group border-b last:border-0 border-slate-200/60 dark:border-slate-800/60 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors"
                       >
-                        <TableCell className="font-medium">{feed.name}</TableCell>
-                        <TableCell className="text-muted-foreground text-xs font-mono max-w-[300px] truncate">{feed.url}</TableCell>
-                        <TableCell className="text-muted-foreground text-sm">
+                        <TableCell className="font-medium text-xs sm:text-sm py-2.5 sm:py-4">{feed.name}</TableCell>
+                        <TableCell className="text-muted-foreground text-[11px] sm:text-xs font-mono max-w-[140px] sm:max-w-[300px] truncate py-2.5 sm:py-4">{feed.url}</TableCell>
+                        <TableCell className="text-muted-foreground text-xs sm:text-sm hidden sm:table-cell py-2.5 sm:py-4">
                           <FormattedDate date={feed.created_at} pattern="d MMM yyyy, HH:mm" />
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-right py-2.5 sm:py-4">
                           <Button 
                             variant="ghost" 
                             size="icon" 
                             onClick={() => handleDelete(feed.id)} 
-                            className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all opacity-0 group-hover:opacity-100"
+                            className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 h-8 w-8"
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>

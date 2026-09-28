@@ -25,22 +25,23 @@ export default async function Home({ searchParams }: { searchParams: { tag?: str
   }
 
   return (
-    <main className="container mx-auto py-10 max-w-5xl px-4 relative z-10">
-      <div className="flex justify-between items-center mb-8">
+    <main className="container mx-auto py-6 sm:py-10 max-w-5xl px-3 sm:px-4 relative z-10 w-full min-w-0">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
             AutoNews
           </h1>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">
             Агрегатор статей с AI-выжимкой. Написано с душой.
           </p>
         </div>
-        <div className="flex gap-4">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
           <RefreshButton />
           <DeleteAllButton />
-          <Link href="/settings">
-            <Button variant="outline" className="shadow-sm hover:shadow transition-shadow bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800">
-              Настройки ленты
+          <Link href="/settings" className="flex-1 sm:flex-initial">
+            <Button variant="outline" className="w-full shadow-sm hover:shadow transition-shadow bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs sm:text-sm px-2.5 sm:px-4 h-9 justify-center whitespace-nowrap">
+              <span className="hidden sm:inline">Настройки ленты</span>
+              <span className="sm:hidden">Настройки</span>
             </Button>
           </Link>
         </div>
@@ -57,12 +58,12 @@ export default async function Home({ searchParams }: { searchParams: { tag?: str
           variants={articleListVariants}
           initial="hidden"
           animate="show"
-          className="grid gap-6 md:grid-cols-2"
+          className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 w-full min-w-0"
         >
           {articles.map((article) => {
             const feed = feeds.find(f => f.id === article.FeedID);
             return (
-              <ArticleCard key={article.ID} variants={articleCardVariants}>
+              <ArticleCard key={article.ID} variants={articleCardVariants} className="w-full min-w-0">
                 <LazyArticleCard initialArticle={article} feed={feed} />
               </ArticleCard>
             )

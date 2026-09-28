@@ -58,20 +58,20 @@ export function LazyArticleCard({ initialArticle, feed }: LazyArticleCardProps) 
   }, [article.ID, article.Status]);
 
   return (
-    <div ref={cardRef} className="h-full">
-      <Card className="flex flex-col h-full hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-        <CardHeader>
-          <div className="flex justify-between items-start gap-4">
-            <div className="flex-1">
+    <div ref={cardRef} className="h-full w-full min-w-0">
+      <Card className="flex flex-col h-full w-full min-w-0 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden break-words">
+        <CardHeader className="px-3.5 sm:px-5 py-3 sm:py-4">
+          <div className="flex justify-between items-start gap-2 sm:gap-4 w-full min-w-0">
+            <div className="flex-1 min-w-0">
               {feed && (
-                <div className="mb-2 inline-flex items-center text-[10px] uppercase tracking-wider font-bold text-slate-500 bg-slate-100 dark:bg-slate-900 px-2 py-0.5 rounded-sm">
-                  <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <div className="mb-2 inline-flex items-center text-[10px] uppercase tracking-wider font-bold text-slate-500 bg-slate-100 dark:bg-slate-900 px-2 py-0.5 rounded-sm max-w-full truncate">
+                  <svg className="w-3 h-3 mr-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
                   </svg>
-                  {feed.name}
+                  <span className="truncate">{feed.name}</span>
                 </div>
               )}
-              <CardTitle className="text-xl line-clamp-2 mb-2 font-semibold">
+              <CardTitle className="text-base sm:text-lg md:text-xl line-clamp-2 mb-2 font-semibold break-words [overflow-wrap:anywhere]">
                 {article.OriginalURL ? (
                   <a href={article.OriginalURL} target="_blank" rel="noreferrer" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                     {article.Title}
@@ -80,8 +80,8 @@ export function LazyArticleCard({ initialArticle, feed }: LazyArticleCardProps) 
                   article.Title
                 )}
               </CardTitle>
-              <div className="flex items-center gap-2">
-                <span className={`text-xs px-2 py-1 rounded-md whitespace-nowrap font-medium transition-colors duration-300 ${
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <span className={`text-[11px] sm:text-xs px-2 py-0.5 sm:py-1 rounded-md whitespace-nowrap font-medium transition-colors duration-300 ${
                   article.Status === 'done' 
                     ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' 
                     : analyzing 
@@ -90,7 +90,7 @@ export function LazyArticleCard({ initialArticle, feed }: LazyArticleCardProps) 
                 }`}>
                   {article.Status === 'done' ? 'Готово' : analyzing ? 'Анализируем...' : 'В очереди'}
                 </span>
-                <CardDescription className="m-0 text-slate-500">
+                <CardDescription className="m-0 text-slate-500 text-xs sm:text-sm truncate">
                   <FormattedDate date={article.CreatedAt} />
                 </CardDescription>
               </div>
@@ -98,7 +98,7 @@ export function LazyArticleCard({ initialArticle, feed }: LazyArticleCardProps) 
             <DeleteArticleButton id={article.ID} />
           </div>
         </CardHeader>
-        <CardContent className="flex-1 min-h-[120px]">
+        <CardContent className="flex-1 min-h-[100px] sm:min-h-[120px] px-3.5 sm:px-5 py-2">
           <AnimatePresence mode="wait">
             {article.Status === 'done' && article.AISummary ? (
               <motion.div 
@@ -106,12 +106,12 @@ export function LazyArticleCard({ initialArticle, feed }: LazyArticleCardProps) 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg border border-slate-100 dark:border-slate-800 text-sm text-slate-700 dark:text-slate-300 shadow-inner"
+                className="bg-slate-50 dark:bg-slate-900 p-3 sm:p-4 rounded-lg border border-slate-100 dark:border-slate-800 text-xs sm:text-sm text-slate-700 dark:text-slate-300 shadow-inner break-words [overflow-wrap:anywhere]"
               >
-                <span className="font-bold block mb-2 text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[10px]">
+                <span className="font-bold block mb-1.5 sm:mb-2 text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[10px]">
                   Самое важное:
                 </span>
-                <div className="leading-relaxed">{article.AISummary}</div>
+                <div className="leading-relaxed break-words [overflow-wrap:anywhere]">{article.AISummary}</div>
               </motion.div>
             ) : analyzing ? (
               <motion.div 
@@ -142,10 +142,10 @@ export function LazyArticleCard({ initialArticle, feed }: LazyArticleCardProps) 
           </AnimatePresence>
         </CardContent>
         {article.Status === 'done' && article.Tags && article.Tags.length > 0 && (
-          <CardFooter className="pt-0 flex flex-wrap gap-2 bg-transparent border-t-0">
+          <CardFooter className="pt-0 px-3.5 sm:px-5 pb-3 sm:pb-4 flex flex-wrap gap-1.5 sm:gap-2 bg-transparent border-t-0">
             {article.Tags.map((tag, idx) => (
-              <Badge key={idx} variant="secondary" className="hover:bg-secondary/80 transition-colors">
-                <Link href={`/?tag=${encodeURIComponent(tag)}`}>
+              <Badge key={idx} variant="secondary" className="hover:bg-secondary/80 transition-colors text-xs max-w-full">
+                <Link href={`/?tag=${encodeURIComponent(tag)}`} className="truncate max-w-full block">
                   {tag}
                 </Link>
               </Badge>
